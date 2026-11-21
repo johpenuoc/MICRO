@@ -132,11 +132,11 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster 
 {
     if (stack->utype == NODE)
         {
+            printf("Ntype: %s\n", type_names[stack->UNION.Node.type]);
             const enum _TYPE_ STYPE = stack->UNION.Node.type;
             char *val = stack->UNION.Node.stor;
             enum _COMMAND_ ctype;
             
-            //printf("%s\n", type_names[STYPE]);
             switch (STYPE)
                 {
                     case EQUAL:
@@ -205,7 +205,7 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster 
                                     ministream.streamsz = 0;
                                     ministream.streamln = 0;
                                     
-                                    if (gem->UNION.Nodes.nodes[gem->UNION.Nodes.nodeln - 1].UNION.Node.type == EQUAL)
+                                    /*if (gem->UNION.Nodes.nodes[gem->UNION.Nodes.nodeln - 1].UNION.Node.type == EQUAL)
                                         {
                                              Instruction opcode = CMDcreate_isn(_SET, "");
                                              astream(&ministream, opcode);
@@ -223,12 +223,19 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster 
                                             astream(&ministream, opcode);
                                             
                                             /*Instruction opcode = CMDcreate_isn(_HA, "");
-                                            astream(&ministream, opcode);*/
+                                            astream(&ministream, opcode);
                                             char *s = stack->UNION.Node.stor;
                                             Instruction memloc = MEMcreate_isn(HASH, (void *)s);
                                             astream(&ministream, memloc);
                                             
-                                        }
+                                        }*/
+                                        
+                                    Instruction opcode = CMDcreate_isn(_LOAD, "");
+                                    astream(&ministream, opcode);
+                                    
+                                    char *s = stack->UNION.Node.stor;
+                                    Instruction memloc = MEMcreate_isn(HASH, (void *)s);
+                                    astream(&ministream, memloc);
                                     
                                     aastream(bs, ministream);
                                 }
@@ -261,8 +268,14 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster 
                             ministream.streamsz = 0;
                             ministream.streamln = 0;
                             
-                            Instruction _opcode = CMDcreate_isn(_PUSH, "");
-                            astream(&ministream, _opcode);
+                            Instruction opcode = CMDcreate_isn(_MUL, "");
+                            astream(&ministream, opcode);
+                            int p = 1;
+                            Instruction memloc1 = MEMcreate_isn(STACK, (void *)&p);
+                            astream(&ministream, memloc1);
+                            int p2 = 2;
+                            Instruction memloc2 = MEMcreate_isn(STACK, (void *)&p2);
+                            astream(&ministream, memloc2);
                             
                             aastream(bs, ministream);
                             
@@ -272,14 +285,8 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster 
                             ministream.streamsz = 0;
                             ministream.streamln = 0;
                             
-                            Instruction opcode = CMDcreate_isn(_MUL, "");
-                            astream(&ministream, opcode);
-                            int p = 1;
-                            Instruction memloc1 = MEMcreate_isn(STACK, (void *)&p);
-                            astream(&ministream, memloc1);
-                            int p2 = 2;
-                            Instruction memloc2 = MEMcreate_isn(STACK, (void *)&p2);
-                            astream(&ministream, memloc2);
+                            Instruction _opcode = CMDcreate_isn(_PUSH, "");
+                            astream(&ministream, _opcode);
                             
                             aastream(bs, ministream);
                         }
@@ -324,8 +331,10 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster 
         }
     else
         {      
+            //printf("stack len %d\n", stack->UNION.Nodes.nodeln);
             //(*depth)++;
-            for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
+            printf("NStype: %s  len: %d\n", type_names[stack->UNION.Nodes.type], stack->UNION.Nodes.nodeln);
+            for (int i = (stack->UNION.Nodes.nodeln - 1); i >= 0; --i)
                 {
                     enum _TYPE_ ptype = stack->UNION.Nodes.type;
                     NodeMaster node_s = stack->UNION.Nodes.nodes[i];
@@ -387,10 +396,16 @@ ByteStream compile(NodeMaster *stack)
     bs.bstream = NULL;
     bs.streamln = 0;
     bs.streamsz = 0;
-    traverse(stack, PROGRAM, &bs,  &gem, &gemsz);
+    for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
+        {
+            enum _TYPE_ ptype = stack->UNION.Nodes.type;
+            NodeMaster node_s = stack->UNION.Nodes.nodes[i];
+            traverse(&node_s, PROGRAM, &bs,  &gem, &gemsz);
+        }
+    //traverse(stack, PROGRAM, &bs,  &gem, &gemsz);
     
     printf("%d BYTECODE:\n", bs.streamln);
-    for (int i = bs.streamln - 1; i >= 0; --i)
+    for (int i = 0; i < bs.streamln; ++i)
         {   
             bsprint(bs.bstream[i]);
             /*enum _COMMAND_ cmdname = cmds[i].cmdt;

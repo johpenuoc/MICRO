@@ -376,3 +376,8 @@ Next will be to add more commands and to make them more cohesive and generally b
 Going to take a break neow.
 
 BTW, every ':' should be a '[' or ']', but it was messing up the .md formatting.
+
+### 21:25
+Okay, I've got it figured out!
+
+We don't reverse the entire tree, but we only rever each sub tree!
