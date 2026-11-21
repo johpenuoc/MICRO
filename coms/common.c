@@ -11,6 +11,10 @@ enum _UTYPE_
 {
     NODE, NODES
 };
+const char *utypes[] = {
+    "NODE", "NODES"
+};
+
 
 enum _COMMAND_
 {
@@ -18,10 +22,20 @@ enum _COMMAND_
     
     _PUSH, _CALL, _STO, _ID,
     
-    _LITERAL,
+    _LITERAL, _ID_PUSH,
     
     SPLIT
 };
+const char *cmdt_types[] = {
+    "_ADD", "_SUB", "_MUL", "_DIV",
+    
+    "_PUSH", "_CALL", "_STO", "_ID",
+    
+    "_LITERAL", "_ID_PUSH",
+    
+    "SPLIT"
+};
+
 
 enum _TYPE_ 
 {
@@ -49,13 +63,6 @@ enum _TYPE_
     LOOP, LIST, LIST_ACC, OPERATION, CLASS, INHERITS,
     META_SCOPE
 };
-
-enum _DATATYPE_
-{
-    _INT_, _STRING_, _CHAR_, _BOOL_,
-    _FLOAT_
-};
-
 const char *type_names[] = {
     "LPAREN", "RPAREN", "LBRACE", "RBRACE",
     "LBRACKET", "RBRACKET", "COMMA", "DECIMAL", 
@@ -83,19 +90,15 @@ const char *type_names[] = {
 
 };
 
-const char *cmdt_names[] = {
-    "_ADD", "_SUB", "_MUL", "_DIV",
-    
-    "_PUSH", "_CALL", "_STO", "_ID",
-    
-    "_LITERAL",
-    
-    "SPLIT"
+
+enum _DATATYPE_
+{
+    _INT_, _STRING_, _FLOAT_
+};
+const char *data_types[] = {
+    "INT", "STRING", "FLOAT"
 };
 
-const char *utypes[] = {
-    "NODE", "NODES"
-};
 
 typedef struct Token
 {
@@ -105,7 +108,6 @@ typedef struct Token
     int line;
     
 } Token;
-
 typedef struct List
 {
     void *element;
@@ -161,12 +163,81 @@ typedef struct
     size_t argsz;
 } CMD;*/
 
+
+// ===================================
+
+enum _MEMTYPE_
+{
+    STACK, HASHMAP
+};
+const char *mem_types[] = {
+    "STACK", "HASHMAP"
+};
+
+
+
+typedef struct
+{
+    enum _MEMTYPE_ memt;
+    union
+    {
+        int index;
+        char *key;
+    } loc;
+    
+} MEM;
+
 typedef struct 
 {
     enum _COMMAND_ cmdt;
-    int argln;
     char *val;
+    
 } CMD;
+
+typedef struct
+{
+    enum _DATATYPE_ datat;
+    
+} CON;
+
+
+// CON means 'context'
+// like giving a number, 5,
+// and saying 'INT' after
+enum _ISNTYPE_
+{
+    __CMD, __MEM, __CON
+};
+const char *isn_types[] = {
+    "__CMD", "__MEM", "__CON"
+};
+
+typedef struct
+{
+    enum _ISNTYPE_ isnt;
+    union
+    {
+        CMD cmd;
+        MEM mem;
+        CON con;
+    } data;
+    
+} Instruction;
+
+typedef struct __TAG
+{
+    // this one is only for the main stream. 
+    // its only a '2d array'
+    struct __TAG *bstream;
+    
+    Instruction *stream;
+    int streamln;
+    size_t streamsz;
+    
+} ByteStream;
+
+// ===================================
+
 // ==============================
 // ==============================
 

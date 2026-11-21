@@ -318,3 +318,51 @@ When initially reading the raw 'bytecode' (it won't be quite bytecode at this st
 
 ### 23:35
 I have NO idea why the code isn't working. Been looking at it for ages. It quite literally makes ZERO sense as to why it isn't running... Why can't I access any index in cmds???
+
+## 21/11/26
+### 15:16
+WE'RE MAKING BYTECODE BABYYYY
+
+### 16:57
+Greetings. As it is, we now can create bytecode for very simple expressions. Take:
+
+a = y * (func(x) * 0.5);
+
+this gets converted into the stack
+
+STACK: [ASSIGNMENT]
+                NODE: [EQUAL]-------->[=]
+                NODE: [IDENTIFIER]--->[a]
+                STACK: [EXPRESSION]
+                        STACK: [OPERATION]
+                                NODE: [STAR]--------->[*]
+                                NODE: [IDENTIFIER]--->[y]
+                                STACK: [EXPRESSION]
+                                        STACK: [OPERATION]
+                                                NODE: [STAR]--------->[*]
+                                                STACK: [FUNCTION_CALL]
+                                                        NODE: [IDENTIFIER]--->[func]
+                                                        STACK: [ARGUMENTS]
+                                                                STACK: [EXPRESSION]
+                                                                        NODE: [IDENTIFIER]--->[x]
+                                                NODE: [NUMBER]------->[0.5]
+                                                
+which gives us the (unfinished and not ready) pseudo-bytecode:
+
+_PUSH, STACK[2], INT,
+
+_ID_PUSH, STACK[6],
+
+_CALL, HASHMAP[FUNC],
+
+_MUL, STACK[8], STACK[7],
+
+_ID_PUSH, STACK[6],
+
+_MUL, STACK[8], STACK[7],
+
+_ID_PUSH, STACK[6],
+
+_STO, STACK[4], STACK[7],
+
+Sweet!

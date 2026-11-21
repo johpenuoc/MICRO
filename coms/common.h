@@ -10,7 +10,10 @@ extern char *MODE;
 extern char *type_names[];
 extern char *stack_type_names[];
 extern char *utypes[];
-extern char *cmdt_names[];
+extern char *cmdt_types[];
+extern char *isn_types[];
+extern char *data_types[];
+extern char *mem_types[];
 
 enum _UTYPE_
 {
@@ -23,7 +26,7 @@ enum _COMMAND_
     
     _PUSH, _CALL, _STO, _ID,
     
-    _LITERAL,
+    _LITERAL, _ID_PUSH,
     
     SPLIT
 };
@@ -58,8 +61,12 @@ enum _TYPE_
 
 enum _DATATYPE_
 {
-    _INT_, _STRING_, _CHAR_, _BOOL_,
-    _FLOAT_
+    _INT_, _STRING_, _FLOAT_
+};
+
+enum _MEMTYPE_
+{
+    STACK, HASHMAP
 };
 
 typedef struct Token
@@ -101,12 +108,57 @@ typedef struct TAG
     
 } NodeMaster;
 
+typedef struct
+{
+    enum _MEMTYPE_ memt;
+    union
+    {
+        int index;
+        char *key;
+    } loc;
+    
+} MEM;
+
 typedef struct 
 {
     enum _COMMAND_ cmdt;
-    int argln;
     char *val;
+    
 } CMD;
+
+typedef struct
+{
+    enum _DATATYPE_ datat;
+} CON;
+
+enum _ISNTYPE_
+{
+    __CMD, __MEM, __CON
+};
+
+typedef struct
+{
+    enum _ISNTYPE_ isnt;
+    union
+    {
+        CMD cmd;
+        MEM mem;
+        CON con;
+    } data;
+    
+} Instruction;
+
+typedef struct __TAG
+{
+    // this one is only for the main stream. 
+    // its only a '2d array'
+    struct __TAG *bstream;
+    
+    Instruction *stream;
+    int streamln;
+    size_t streamsz;
+    
+} ByteStream;
 
 void debugp(char *s);
 bool is_in(char *string, char c, int string_length);

@@ -37,3 +37,21 @@ list2[5 * 2, 9];
 
 a = y * (func(x) * 0.5);
 
+============================================================
+
+BYTECODE:
+_PUSH _NUMBER, INT
+
+_ID_PUSH _ID6
+
+_CALL hashmap[FUNC_ID5]
+
+_MUL mem[top], mem[n - 2]
+
+_ID_PUSH _ID3
+
+_MUL mem[top], mem[n - 2]
+
+_ID_PUSH _ID1
+
+_STO ID[top], mem[top]
