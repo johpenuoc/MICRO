@@ -25,3 +25,6 @@ _LOAD retrievs from the hashtable a certain value. It takes one argument: the ke
 === _SET ===
 This allocates space on the hashtable and updates the KEYL (keylist) with the key.
 
+
+=== _PUSH_KEYL ===
+This will push a key (which will just be a STRING) into the keylist.

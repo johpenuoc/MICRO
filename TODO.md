@@ -381,3 +381,10 @@ BTW, every ':' should be a '[' or ']', but it was messing up the .md formatting.
 Okay, I've got it figured out!
 
 We don't reverse the entire tree, but we only rever each sub tree!
+
+### 22:40
+It now generates bytecode for pretty simple programs.
+
+Next will be to simply expand that! I will need to add more commands like 'JUMP' so 'until' loops and if-else-statements can work. Then afterwards I will have to build the VM to actually run that code. I can make multiple VM's for multiple platforms, making my language portable too!
+
+I'm not sure whether to begin development on that now. It is a little late, though I'm not tired. I'm just very aware that the following developments will probably take some time. 
