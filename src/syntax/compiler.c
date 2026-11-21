@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 #include "coms/common.h"
 
@@ -84,15 +85,20 @@ Instruction MEMcreate_isn(enum _MEMTYPE_ memtype, void *_index)
     isn.isnt = __MEM;
     isn.data.mem.memt = memtype;
     if (memtype == STACK) isn.data.mem.loc.index = *((int *)_index);
-    else isn.data.mem.loc.key = (char *)_index;
+    else if (memtype == HASH) isn.data.mem.loc.key = (char *)_index;
+    else  isn.data.mem.loc.keylistid = *((int *)_index);
     
     return isn;
 }
-Instruction CONcreate_isn(enum _DATATYPE_ datatype)
+Instruction CONcreate_isn(enum _DATATYPE_ datatype, void *data)
 {
     Instruction isn;
     isn.isnt = __CON;
     isn.data.con.datat = datatype;
+    isn.data.con.val = data;
+    /*if (datatype == _INT_) isn.data.con.rawdata.val = *((int *)data);
+    else if (datatype == _STRING_) isn.data.con.rawdata.inum = *((char *)data);
+    else if (datatype == _FLOAT_) isn.data.con.rawdata.inum = *((float *)data);*/
     
     return isn;
 }
@@ -122,7 +128,7 @@ void aastream(ByteStream *bs, ByteStream isn)
 }
 
 //CMD* cmds, size_t *cmdsz, int *cmdln
-void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
+void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster *gem, size_t *gemsz)
 {
     if (stack->utype == NODE)
         {
@@ -147,11 +153,17 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                             
                             Instruction opcode = CMDcreate_isn(_STO, "");
                             astream(&ministream, opcode);
-                            int p = 4;
+                            
+                            int p = 1;
                             Instruction memloc1 = MEMcreate_isn(STACK, (void *)&p);
                             astream(&ministream, memloc1);
-                            int p2 = 7;
-                            Instruction memloc2 = MEMcreate_isn(STACK, (void *)&p2);
+                            
+                            /*char *s = "";
+                            Instruction memloc1 = MEMcreate_isn(KEYLIST, (void *)s);
+                            astream(&ministream, memloc1);*/
+                            
+                            char *p2 = "KEYL[-1]";
+                            Instruction memloc2 = MEMcreate_isn(HASH, (void *)p2);
                             astream(&ministream, memloc2);
                             
                             // create complete instruction
@@ -175,8 +187,8 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                             
                                    Instruction opcode = CMDcreate_isn(_CALL, "");
                                    astream(&ministream, opcode);
-                                   char *p = "FUNC";
-                                   Instruction memloc = MEMcreate_isn(HASHMAP, (void *)p);
+                                   char *s = stack->UNION.Node.stor;
+                                   Instruction memloc = MEMcreate_isn(HASH, (void *)s);
                                    astream(&ministream, memloc);
                                    
                                    aastream(bs, ministream);
@@ -193,11 +205,30 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                                     ministream.streamsz = 0;
                                     ministream.streamln = 0;
                                     
-                                    Instruction opcode = CMDcreate_isn(_ID_PUSH, "");
-                                    astream(&ministream, opcode);
-                                    int p = 6;
-                                    Instruction memloc = MEMcreate_isn(STACK, (void *)&p);
-                                    astream(&ministream, memloc);
+                                    if (gem->UNION.Nodes.nodes[gem->UNION.Nodes.nodeln - 1].UNION.Node.type == EQUAL)
+                                        {
+                                             Instruction opcode = CMDcreate_isn(_SET, "");
+                                             astream(&ministream, opcode);
+                                             
+                                             char *s = stack->UNION.Node.stor;
+                                             Instruction memloc = MEMcreate_isn(HASH, (void *)s);
+                                             astream(&ministream, memloc);
+                                        }
+                                    else
+                                        {
+                                    
+                                            // LOAD HASH y
+                                            
+                                            Instruction opcode = CMDcreate_isn(_LOAD, "");
+                                            astream(&ministream, opcode);
+                                            
+                                            /*Instruction opcode = CMDcreate_isn(_HA, "");
+                                            astream(&ministream, opcode);*/
+                                            char *s = stack->UNION.Node.stor;
+                                            Instruction memloc = MEMcreate_isn(HASH, (void *)s);
+                                            astream(&ministream, memloc);
+                                            
+                                        }
                                     
                                     aastream(bs, ministream);
                                 }
@@ -222,7 +253,7 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                         {
                             ctype = _MUL;
                             
-                            //_MUL mem[top], mem[n - 2]
+                            // PUSH
                             
                             // similar to the mstack and mini branches
                             ByteStream ministream;
@@ -230,12 +261,23 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                             ministream.streamsz = 0;
                             ministream.streamln = 0;
                             
+                            Instruction _opcode = CMDcreate_isn(_PUSH, "");
+                            astream(&ministream, _opcode);
+                            
+                            aastream(bs, ministream);
+                            
+                            //_MUL mem[top], mem[n - 2]
+                            
+                            ministream.stream = NULL;
+                            ministream.streamsz = 0;
+                            ministream.streamln = 0;
+                            
                             Instruction opcode = CMDcreate_isn(_MUL, "");
                             astream(&ministream, opcode);
-                            int p = 8;
+                            int p = 1;
                             Instruction memloc1 = MEMcreate_isn(STACK, (void *)&p);
                             astream(&ministream, memloc1);
-                            int p2 = 7;
+                            int p2 = 2;
                             Instruction memloc2 = MEMcreate_isn(STACK, (void *)&p2);
                             astream(&ministream, memloc2);
                             
@@ -256,10 +298,11 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                             
                             Instruction opcode = CMDcreate_isn(_PUSH, "");
                             astream(&ministream, opcode);
-                            int p = 2;
-                            Instruction memloc = MEMcreate_isn(STACK, (void *)&p);
-                            astream(&ministream, memloc);
-                            Instruction context = CONcreate_isn(_INT_);
+                            /*int p = stack->UNION.Node.stor;
+                            Instruction memloc = MEMcreate_isn(STACK, (void *)p);
+                            astream(&ministream, memloc);*/
+                            int p = 5;
+                            Instruction context = CONcreate_isn(_INT_, (void *)&p);
                             astream(&ministream, context);
                             
                             aastream(bs, ministream);                 
@@ -270,6 +313,12 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                         break;
                     
                 }
+                
+            // we append each NODE to gem (general memory)
+            *gemsz += sizeof(*stack);
+            gem->UNION.Nodes.nodes = realloc(gem->UNION.Nodes.nodes, *gemsz);
+            gem->UNION.Nodes.nodes[gem->UNION.Nodes.nodeln] = *stack;
+            gem->UNION.Nodes.nodeln++;
             //CMD c = spawn(ctype, 2, val);
             //acmd(cmds, cmdsz, cmdln, spawn(ctype, 2, val));
         }
@@ -280,7 +329,7 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs)
                 {
                     enum _TYPE_ ptype = stack->UNION.Nodes.type;
                     NodeMaster node_s = stack->UNION.Nodes.nodes[i];
-                    traverse(&node_s, ptype, bs);
+                    traverse(&node_s, ptype, bs,  gem, gemsz);
                 }
             //(*depth)--;
         }
@@ -291,24 +340,34 @@ void bsprint(ByteStream isn)
     Instruction *st = isn.stream;
     for (int i = 0; i < isn.streamln; ++i)
         {
-             if (st[i].isnt == __CMD)
+            if (st[i].isnt == __CMD)
                 {
-                    printf("%s, ", cmdt_types[st[i].data.cmd.cmdt]);
+                    printf("%s ", cmdt_types[st[i].data.cmd.cmdt]);
                 }
             else if (st[i].isnt == __MEM)
                 {
                     if (st[i].data.mem.memt == STACK)
                         {
-                            printf("%s[%d], ", mem_types[st[i].data.mem.memt],  st[i].data.mem.loc.index);
+                            //printf("MEM %d ", mem_types[st[i].data.mem.memt],  st[i].data.mem.loc.index);
+                            printf("STACK(-%d), ", st[i].data.mem.loc.index);
                         }
-                    else
+                    /*else if (st[i].data.mem.memt == KEYLIST)
                         {
-                            printf("%s[%s], ", mem_types[st[i].data.mem.memt],  st[i].data.mem.loc.key);
+                            printf("-%d, ", st[i].data.mem.loc.keylistid);
+                        }*/
+                    else if (st[i].data.mem.memt == HASH)
+                        {
+                            //printf("%s: %s ", mem_types[st[i].data.mem.memt],  st[i].data.mem.loc.key);
+                            printf("HASH(%s) ", st[i].data.mem.loc.key);
                         }
                     //printf("%s, ", mem_types[st[i].data.mem.memt]);
                 }
             else
                 {
+                    void *p = st[i].data.con.val;
+                    if (st[i].data.con.datat == _INT_) printf("%d ", (*(int *)p)); 
+                    else if (st[i].data.con.datat == _STRING_) printf("%s ", (*(char *)p));
+                    if (st[i].data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
                     printf("%s, ", data_types[st[i].data.con.datat]);
                 }  
              
@@ -318,11 +377,17 @@ void bsprint(ByteStream isn)
 
 ByteStream compile(NodeMaster *stack)
 {
+    size_t gemsz = 0;
+    NodeMaster gem;
+    gem.utype = NODES;
+    gem.UNION.Nodes.nodes = NULL;
+    gem.UNION.Nodes.nodeln = 0;
+    
     ByteStream bs;
     bs.bstream = NULL;
     bs.streamln = 0;
     bs.streamsz = 0;
-    traverse(stack, PROGRAM, &bs);
+    traverse(stack, PROGRAM, &bs,  &gem, &gemsz);
     
     printf("%d BYTECODE:\n", bs.streamln);
     for (int i = bs.streamln - 1; i >= 0; --i)

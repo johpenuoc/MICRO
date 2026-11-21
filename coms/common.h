@@ -26,7 +26,9 @@ enum _COMMAND_
     
     _PUSH, _CALL, _STO, _ID,
     
-    _LITERAL, _ID_PUSH,
+    _LITERAL, _ID_PUSH, _LOAD,
+    
+    _SET,
     
     SPLIT
 };
@@ -66,7 +68,7 @@ enum _DATATYPE_
 
 enum _MEMTYPE_
 {
-    STACK, HASHMAP
+    STACK, HASH, KEYLIST
 };
 
 typedef struct Token
@@ -115,6 +117,7 @@ typedef struct
     {
         int index;
         char *key;
+        int keylistid;
     } loc;
     
 } MEM;
@@ -129,6 +132,8 @@ typedef struct
 typedef struct
 {
     enum _DATATYPE_ datat;
+    void *val;
+    
 } CON;
 
 enum _ISNTYPE_
@@ -159,6 +164,13 @@ typedef struct __TAG
     size_t streamsz;
     
 } ByteStream;
+
+typedef struct
+{
+    enum _DATATYPE_ castto;
+    void *data;
+    
+} Genmem;
 
 void debugp(char *s);
 bool is_in(char *string, char c, int string_length);

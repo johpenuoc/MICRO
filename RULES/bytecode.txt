@@ -1,0 +1,27 @@
+=== _OPERATORS ===
+_ADD, for example, takes the last two items stored in the STACK and adds them.
+
+
+=== _PUSH ===
+This moves the last calculated item onto the STACK.
+
+
+=== _CALL ===
+This 'calls' a function. May return an answer that'll be pushed onto the STACK within the fuction.
+
+
+=== _STO ===
+This takes two arguments: VALUE : LOCATION. For example:
+    
+    STO STACK(-1), HASH(KEYL[-1])
+
+    This will store the value from the end of STACK into the hashtable with the key at the last index stored in KEYL 'keylist'.
+    
+    
+=== _LOAD ===
+_LOAD retrievs from the hashtable a certain value. It takes one argument: the key for the hashtable.
+
+
+=== _SET ===
+This allocates space on the hashtable and updates the KEYL (keylist) with the key.
+

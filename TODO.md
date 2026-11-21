@@ -366,3 +366,6 @@ _ID_PUSH, STACK[6],
 _STO, STACK[4], STACK[7],
 
 Sweet!
+
+### 20:05
+I've been getting on for the past hour or so the development of converting 'stack', or AST tree' into bytecode. It's in a very simple and primitive state, but I was just wanting to get something working that's fairly coherent. I've been laying out how the byte code will work. So far, it works pretty alright!

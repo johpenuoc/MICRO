@@ -22,16 +22,20 @@ enum _COMMAND_
     
     _PUSH, _CALL, _STO, _ID,
     
-    _LITERAL, _ID_PUSH,
+    _LITERAL, _ID_PUSH, _LOAD,
+    
+    _SET,
     
     SPLIT
 };
 const char *cmdt_types[] = {
-    "_ADD", "_SUB", "_MUL", "_DIV",
+    "ADD", "SUB", "MUL", "DIV",
     
-    "_PUSH", "_CALL", "_STO", "_ID",
+    "PUSH", "CALL", "STO", "ID",
     
-    "_LITERAL", "_ID_PUSH",
+    "LITERAL", "ID_PUSH", "LOAD",
+    
+    "SET",
     
     "SPLIT"
 };
@@ -168,10 +172,10 @@ typedef struct
 
 enum _MEMTYPE_
 {
-    STACK, HASHMAP
+    STACK, HASH, KEYLIST
 };
 const char *mem_types[] = {
-    "STACK", "HASHMAP"
+    "STACK", "HASH"
 };
 
 
@@ -183,6 +187,7 @@ typedef struct
     {
         int index;
         char *key;
+        int keylistid;
     } loc;
     
 } MEM;
@@ -197,6 +202,7 @@ typedef struct
 typedef struct
 {
     enum _DATATYPE_ datat;
+    void *val;
     
 } CON;
 
@@ -237,6 +243,17 @@ typedef struct __TAG
 } ByteStream;
 
 // ===================================
+
+// this is a general memory stack
+// its going to be used to simply 
+// hold certain variables and 'stors'
+// from different nodes
+typedef struct
+{
+    enum _DATATYPE_ castto;
+    void *data;
+    
+} Genmem;
 
 // ==============================
 // ==============================
