@@ -68,7 +68,7 @@ enum _DATATYPE_
 
 enum _MEMTYPE_
 {
-    STACK, HASH, KEYLIST
+    STACK, HASH, KEYL
 };
 
 typedef struct Token

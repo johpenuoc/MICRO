@@ -4,13 +4,13 @@ So far, as it is, the program tokenizes the file and then parses it.
 
 The function to parse is named as 'stack'. I named it as such because, in code, it functions less like a tree and more as a 2d array whereby the second dimension has 'stacks'. Like this:
 
-[=][x][[2][[/][3][7]]]
+[=:[x:[[2:[[/:[3:[7:::
 
 Hence 'stack'.
 
 The code works, at least in the limited testing its been given. So, assuming parse_expr and parse_assignment work correctly, the next steps should be to expand all of the terminal tokens/functions so that you can write more than simple assignments. 
 
-This shouldn't be massively difficult. Largely, most code is comprised of expressions, statements, assignments, and the rest is a mix or only a little different (I'm only talking in the context of parsing). For example, [IF] [STMT] [CODE] [(optional)ELSE]. The STMT is a comparison (x == y?), which will use the same logic as parse_assignment, just opposite in order. 
+This shouldn't be massively difficult. Largely, most code is comprised of expressions, statements, assignments, and the rest is a mix or only a little different (I'm only talking in the context of parsing). For example, [IF: [STMT: [CODE: [(optional)ELSE:. The STMT is a comparison (x == y?), which will use the same logic as parse_assignment, just opposite in order. 
 
 That will be the next step. But as of right now, the basic tokenize system and basic parsing system works. Functionally it cannot actually execute the code right now, of course. However, that very difficult part will come soon.
 
@@ -61,7 +61,7 @@ I do believe linking will also work with
 
 func().something.something
 
-however, I'm not sure I'm going to be implimenting that within my language. [FUNCTION] will not be a class or object which can have attributes. So [DECIMAL] won't do anything. It'll cause an error.
+however, I'm not sure I'm going to be implimenting that within my language. [FUNCTION: will not be a class or object which can have attributes. So [DECIMAL: won't do anything. It'll cause an error.
 
 ### 9:30
 Next shall be... SCOPES.
@@ -72,7 +72,7 @@ The main idea being:
 
 It will be called in certain statements, but also all around the code -- not jsut in statements. 
 
-[IF][STMT][SCOPE][(optional)ELSE]
+[IF:[STMT:[SCOPE:[(optional)ELSE:
 
 SCOPE will just be collecting a bunch of expressions and whatnot. Effectively, you can write anything in a scope. However, whatever was initialized in the scope will be deleted once out of the scope. Unless its writing to something initialized outside of the scope.
 
@@ -113,7 +113,7 @@ I have to get to bed. Anyways, I need to fix that RPAREN thing tomorrow, after m
 
 ## 18/11/26
 ### 10:56
-I started coding maybe about an hour-ish ago. That was right after a test. I definitely aced it. Although, I was very tired and sleep deprived, so I messed up a stupid probability question that's easy as anything. Oh well. Nonetheless, I've fixed both of the previous problems. [IF] statements work properly too now, I think. I still haven't properly tested them, like if statements within if statements. Actually I'm going to do that neow.
+I started coding maybe about an hour-ish ago. That was right after a test. I definitely aced it. Although, I was very tired and sleep deprived, so I messed up a stupid probability question that's easy as anything. Oh well. Nonetheless, I've fixed both of the previous problems. [IF: statements work properly too now, I think. I still haven't properly tested them, like if statements within if statements. Actually I'm going to do that neow.
 
 ### 10:58
 It doesn't work.
@@ -235,7 +235,7 @@ Time to log off :)
 ### 22:57
 I know I said I was logging off but I still have lots of energy.
 
-Anyways, I implemented list accessing, like list[index, index2].
+Anyways, I implemented list accessing, like list[index, index2:.
 
 ## 20/11/26
 ### 14:59
@@ -285,11 +285,11 @@ x = y * 3;
 
 This would be converted into the stack
 
-[=][x][[*][y][3]]
+:=::x:::*::y::3::
 
 Then this would be converted into the stream
 
-LOAD y, MUL mem[y] 3, PUSH, STORE x
+LOAD y, MUL mem:y: 3, PUSH, STORE x
 
 'LOAD' loads something from memory, 'MUL' multiplies two numbers, 'PUSH' puts the last value into memory, 'STORE' puts the latest item in memory and stores it in whatever variable.
 
@@ -330,42 +330,49 @@ a = y * (func(x) * 0.5);
 
 this gets converted into the stack
 
-STACK: [ASSIGNMENT]
-                NODE: [EQUAL]-------->[=]
-                NODE: [IDENTIFIER]--->[a]
-                STACK: [EXPRESSION]
-                        STACK: [OPERATION]
-                                NODE: [STAR]--------->[*]
-                                NODE: [IDENTIFIER]--->[y]
-                                STACK: [EXPRESSION]
-                                        STACK: [OPERATION]
-                                                NODE: [STAR]--------->[*]
-                                                STACK: [FUNCTION_CALL]
-                                                        NODE: [IDENTIFIER]--->[func]
-                                                        STACK: [ARGUMENTS]
-                                                                STACK: [EXPRESSION]
-                                                                        NODE: [IDENTIFIER]--->[x]
-                                                NODE: [NUMBER]------->[0.5]
+STACK: :ASSIGNMENT:
+                NODE: :EQUAL:-------->:=:
+                NODE: :IDENTIFIER:--->:a:
+                STACK: :EXPRESSION:
+                        STACK: :OPERATION:
+                                NODE: :STAR:--------->:*:
+                                NODE: :IDENTIFIER:--->:y:
+                                STACK: :EXPRESSION:
+                                        STACK: :OPERATION:
+                                                NODE: :STAR:--------->:*:
+                                                STACK: :FUNCTION_CALL:
+                                                        NODE: :IDENTIFIER:--->:func:
+                                                        STACK: :ARGUMENTS:
+                                                                STACK: :EXPRESSION:
+                                                                        NODE: :IDENTIFIER:--->:x:
+                                                NODE: :NUMBER:------->:0.5:
                                                 
 which gives us the (unfinished and not ready) pseudo-bytecode:
 
-_PUSH, STACK[2], INT,
+_PUSH, STACK:2:, INT,
 
-_ID_PUSH, STACK[6],
+_ID_PUSH, STACK:6:,
 
-_CALL, HASHMAP[FUNC],
+_CALL, HASHMAP:FUNC:,
 
-_MUL, STACK[8], STACK[7],
+_MUL, STACK:8:, STACK:7:,
 
-_ID_PUSH, STACK[6],
+_ID_PUSH, STACK:6:,
 
-_MUL, STACK[8], STACK[7],
+_MUL, STACK:8:, STACK:7:,
 
-_ID_PUSH, STACK[6],
+_ID_PUSH, STACK:6:,
 
-_STO, STACK[4], STACK[7],
+_STO, STACK:4:, STACK[7:,
 
 Sweet!
 
 ### 20:05
 I've been getting on for the past hour or so the development of converting 'stack', or AST tree' into bytecode. It's in a very simple and primitive state, but I was just wanting to get something working that's fairly coherent. I've been laying out how the byte code will work. So far, it works pretty alright!
+
+### 20:26
+Next will be to add more commands and to make them more cohesive and generally better!
+
+Going to take a break neow.
+
+BTW, every ':' should be a '[' or ']', but it was messing up the .md formatting.

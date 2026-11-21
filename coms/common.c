@@ -172,10 +172,10 @@ typedef struct
 
 enum _MEMTYPE_
 {
-    STACK, HASH, KEYLIST
+    STACK, HASH, KEYL
 };
 const char *mem_types[] = {
-    "STACK", "HASH"
+    "STACK", "HASH", "KEYL"
 };
 
 
