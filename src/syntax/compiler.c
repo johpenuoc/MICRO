@@ -25,11 +25,12 @@ STACK: [ASSIGNMENT]
                                                 NODE: [NUMBER]------->[0.5]
 */
 
-void acmd(CMD *cmds, size_t *cmdsz, int *cmdln, CMD obj)
+void acmd(CMD **cmds, size_t *cmdsz, int *cmdln, CMD obj)
 {
     (*cmdsz) += sizeof(obj);
-    cmds = realloc(cmds, *cmdsz);
-    cmds[*cmdln] = obj;
+    CMD *tmp = realloc(*cmds, *cmdsz);
+    *cmds = tmp;
+    (*cmds)[*cmdln] = obj;
     (*cmdln)++;
     
     //printf("%s -> ", cmdt_names[cmds[(*cmdln) - 1].cmdt]);
@@ -63,7 +64,7 @@ CMD spawn(enum _COMMAND_ cmdtype, int _argln, char *token)
 }*/
 
 //CMD* cmds, size_t *cmdsz, int *cmdln
-void traverse(NodeMaster *stack, enum _TYPE_ ptype, CMD* cmds, size_t *cmdsz, int *cmdln)
+void traverse(NodeMaster *stack, enum _TYPE_ ptype, CMD **cmds, size_t *cmdsz, int *cmdln)
 {
     if (stack->utype == NODE)
         {
@@ -76,6 +77,7 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, CMD* cmds, size_t *cmdsz, in
                     case EQUAL:
                         {
                             ctype = _STO;
+                            printf("_STO is given to %s\n", type_names[STYPE]);
                         }
                         break;
                     case IDENTIFIER:
@@ -87,6 +89,7 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, CMD* cmds, size_t *cmdsz, in
                     case ADD:
                         {
                             ctype = _ADD;
+                            debugp("added");
                         }
                         break;
                     case SUB:
@@ -102,6 +105,7 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, CMD* cmds, size_t *cmdsz, in
                     case STAR:
                         {
                             ctype = _MUL;
+                            debugp("multiplied");
                         }
                         break;
                     case NUMBER:
@@ -111,16 +115,17 @@ void traverse(NodeMaster *stack, enum _TYPE_ ptype, CMD* cmds, size_t *cmdsz, in
                         break;
                     default:
                         //printf("default: %s\n", type_names[stack->UNION.Nodes.type]);
+                        debugp("hit default");
                         break;
                     
                 }
-            CMD c = spawn(ctype, 2, val);
-            acmd(cmds, cmdsz, cmdln, c);
-            printf("size: %d\n", sizeof(cmds[(*cmdln) - 1]));
+            //CMD c = spawn(ctype, 2, val);
+            acmd(cmds, cmdsz, cmdln, spawn(ctype, 2, val));
         }
     else
         {      
             //(*depth)++;
+            printf("STACK: %s || LEN: %d\n", type_names[stack->UNION.Nodes.type], stack->UNION.Nodes.nodeln);
             for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
                 {
                     enum _TYPE_ ptype = stack->UNION.Nodes.type;
@@ -135,16 +140,14 @@ CMD *compile(NodeMaster *stack)
 {
     size_t cmdsz = 0;
     int cmdln = 0;
-    CMD *cmds;
-    traverse(stack, PROGRAM, cmds, &cmdsz, &cmdln);
+    CMD *cmds = NULL;
+    traverse(stack, PROGRAM, &cmds, &cmdsz, &cmdln);
     
+    printf("\n\n");
     
     for (int i = 0; i < cmdln - 1; ++i)
-        {
-            printf("id: %d\n", i);
-            CMD cmd = *cmds;
-            
-            printf("%s ", cmdt_names[cmd.cmdt]);
+        {          
+            printf("%s ", cmdt_names[cmds[i].cmdt]);
         }
         
     return cmds;

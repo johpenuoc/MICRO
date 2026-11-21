@@ -74,7 +74,6 @@ int main(int argc, char **argv)
     printn(&_stack, &depth, s);
     
     CMD *ir = compile(&_stack);
-    debugp("here?");
     
     // =======================================
     
