@@ -13,7 +13,7 @@ void aministream(ByteStream *bs, Instruction *isns, int isnsln);
 void astream(ByteStream *bs, Instruction isn);
 void aastream(ByteStream *bs, ByteStream isn);
 
-void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  NodeMaster *gem, size_t *gemsz);
+void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  Genmem *gem);
 
 ByteStream compile(NodeMaster *stack);
 

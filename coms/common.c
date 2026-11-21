@@ -24,7 +24,7 @@ enum _COMMAND_
     
     _LITERAL, _ID_PUSH, _LOAD,
     
-    _SET,
+    _SET, _PUSH_KEYL,
     
     SPLIT
 };
@@ -35,7 +35,7 @@ const char *cmdt_types[] = {
     
     "LITERAL", "ID_PUSH", "LOAD",
     
-    "SET",
+    "SET", "PUSH_KEYL",
     
     "SPLIT"
 };
@@ -250,8 +250,9 @@ typedef struct __TAG
 // from different nodes
 typedef struct
 {
-    enum _DATATYPE_ castto;
-    void *data;
+    enum _TYPE_ *types;
+    int ln;
+    size_t size;
     
 } Genmem;
 
