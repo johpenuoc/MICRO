@@ -18,6 +18,9 @@ ByteStream mbs_init();
 void mbs_reset(ByteStream *bs);
 void traverse2(NodeMaster *stack, ByteStream *bs,  Genmem *gem);
 
+void bytecode_assignment(&node_s, bs, gem);
+void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem);
+
 ByteStream compile(NodeMaster *stack);
 
 void bsprint(Instruction isn);

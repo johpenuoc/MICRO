@@ -436,3 +436,8 @@ LOAD -> takes the last value in the stack and uses that as a key
      -> it then uses it in the hash table and loads the value onto the stack
      
 PUSH -> pushes the last value onto the stack
+
+### 16:43
+I've made a primitive and fairly crude start to my implementation. So far, in my head at least, it seems as though it'll work. 
+
+I'm going to head to Church neow. After that and a good meal, I'm going to lock in. By the end of today, some good BYTECODE is going to be generated!

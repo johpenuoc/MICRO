@@ -651,6 +651,38 @@ void traverse2(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
         }
 }
 
+void bytecode_assignment(&node_s, bs, gem)
+{
+    // this loops through all of the nodes in an
+    // ASSIGNMENT mstack
+    for (int i = 0; i < node_s->UNION.Nodes.nodeln; ++i)
+        {
+            NodeMaster node = node_s->UNION.Nodes[i];
+             
+            // i will continue this later   
+        }
+}
+
+void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
+{
+    for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
+        {
+            NodeMaster node_s = stack->UNION.Nodes[i];
+            // this function ONLY loops through NODES, not NODE's
+            enum _TYPE_ stack_type = node_s.UNION.Nodes.type;
+            
+            switch (stack_type)
+                {
+                    case ASSIGNMENT:
+                        bytecode_assignment(&node_s, bs, gem);
+                        break;
+                    default:
+                        debugp("Hit a default");
+                        break;
+                }
+        }
+}
+
 void bsprint(ByteStream isn)
 {
     Instruction *st = isn.stream;
