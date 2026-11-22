@@ -411,3 +411,28 @@ if outside_type == FUNCTION_CALL
 Actually... I'm not sure if that's compatible with everything. For example, it would make working with scopes incredibly difficult now that I think about it...
 
 I need to plan this more thoroughly.
+
+### 16:16
+Bytecode planning...
+
+### 16:26
+So I am going to make a function specifically for each possible scenario. For example:
+
+Say we are looping through the stack and we hit an ASSIGNMENT NODES, then we will call bytecode_assignment:stack->UNION.Nodes.node[i]:
+
+At that point, it will give me pinpoint control over what happens during each phase of recursion.
+
+Each function will simply consist of a switch statement and more recursion.
+
+I will implement this later. But I think I have it planned.
+
+Also to state some rules:
+
+HASH -> takes the last value in the stack and uses that as a key
+     -> it then consumes that value and then retrieves the next value
+     -> it then stores that value in the hash table at the respective key
+     
+LOAD -> takes the last value in the stack and uses that as a key
+     -> it then uses it in the hash table and loads the value onto the stack
+     
+PUSH -> pushes the last value onto the stack
