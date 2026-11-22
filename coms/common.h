@@ -28,7 +28,9 @@ enum _COMMAND_
     
     _LITERAL, _ID_PUSH, _LOAD,
     
-    _SET, _PUSH_KEYL,
+    _SET, _PUSH_KEYL, _HASH_SEQ, _END_HASH_SEQ,
+    
+    _HASH,
     
     SPLIT
 };

@@ -24,7 +24,9 @@ enum _COMMAND_
     
     _LITERAL, _ID_PUSH, _LOAD,
     
-    _SET, _PUSH_KEYL,
+    _SET, _PUSH_KEYL, _HASH_SEQ, _END_HASH_SEQ,
+    
+    _HASH,
     
     SPLIT
 };
@@ -35,7 +37,9 @@ const char *cmdt_types[] = {
     
     "LITERAL", "ID_PUSH", "LOAD",
     
-    "SET", "PUSH_KEYL",
+    "SET", "PUSH_KEYL", "HASH_SEQ", "_END_HASH_SEQ",
+    
+    "HASH",
     
     "SPLIT"
 };

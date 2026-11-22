@@ -388,3 +388,26 @@ It now generates bytecode for pretty simple programs.
 Next will be to simply expand that! I will need to add more commands like 'JUMP' so 'until' loops and if-else-statements can work. Then afterwards I will have to build the VM to actually run that code. I can make multiple VM's for multiple platforms, making my language portable too!
 
 I'm not sure whether to begin development on that now. It is a little late, though I'm not tired. I'm just very aware that the following developments will probably take some time. 
+
+## 22/11/26
+### 15:39
+I have come to a halt.
+
+As it is, if I loop through the stack backwards, for some operations it works perfectly. For others, it messes it up. This is proving to be a little more difficult than I thought.
+
+More planning is needed.
+
+### 15:43
+Okay, so I have an idea.
+
+We loop through each 'NODES', but if the 'NODES' contains 'NODE's, then we don't dig in any further.
+
+Inside (where we don't dig any further), we use more recursion to loop through. This will allow function calls and loadings of arguments to happen in the correct order. For example:
+
+if outside_type == FUNCTION_CALL
+    recursive:ARGUMENTS NODES: <-- the arguments will be loaded in this recursion
+    aastream:CALL:;
+    
+Actually... I'm not sure if that's compatible with everything. For example, it would make working with scopes incredibly difficult now that I think about it...
+
+I need to plan this more thoroughly.
