@@ -482,3 +482,50 @@ This doesn't work. Going to pause compiler development and patch issue.
 I've fixed the issue. However, it is still present in parse_scope. I'll deal with that later.
 
 Back to compiler.c development.
+
+### 10:45
+Regarding the bytecode generation for ID linking:
+
+player.box.centrex
+
+in bytecode, this may look like
+
+-- we push each key onto the stack in reverse order
+-- we then use LOAD_SEQ 3
+-- 3 indicates how many items from the stack we use 
+-- LOAD_SEQ places each key into the next loaded hashmap
+PUSH centrex
+PUSH box
+PUSH player
+LOAD_SEQ 3
+PUSH
+
+### 12:04
+Okidokie. The previous note has been implemented.
+
+Given player.data.box.x = 0.5; in the .mcr file, we generate the bytecode:
+
+0.500000 FLOAT,
+PUSH
+
+x STRING,
+PUSH
+
+box STRING,
+PUSH
+
+data STRING,
+PUSH
+
+player STRING,
+PUSH
+
+LOAD_SEQ 4
+
+Pretty cool!
+
+next will be to convert expressions into bytecode!
+
+I'm going to go grab lunch neow.
+
+Oh, something to note is that the bytecode_IDlinker() will also have to check for certain node types, mainly FUNCTION_CALL. You may have player.box.move(); or something, but I will implement this later.

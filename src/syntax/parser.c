@@ -1278,10 +1278,10 @@ NodeMaster stack(List *tokens)
                         {
                             NodeMaster mstack = parse_list_acc(_tokens, ptoken_cnt, &mem, &memsz);
                             // append it to the stack   
-                            stacksz += sizeof(mstack);
+                            /*stacksz += sizeof(mstack);
                             _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
                             _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
-                            _stack.UNION.Nodes.nodeln++;
+                            _stack.UNION.Nodes.nodeln++;*/
                             
                             umem(&mem, mstack, &memsz);
                             //token_cnt--;

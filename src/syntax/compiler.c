@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 
 #include "coms/common.h"
 
@@ -699,6 +700,51 @@ void aastream(ByteStream *bs, ByteStream isn)
 
 */
 
+void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, int *linker_cnt)
+{
+    // if the second index is NODES, then that means the linker has more than
+    // one '.'
+    // otherwise it means that its a single dot like player.x or something
+    
+    NodeMaster sublink = node_s->UNION.Nodes.nodes[1];
+    
+    // this means that there is also a third node which
+    NodeMaster subsublink = node_s->UNION.Nodes.nodes[2];
+     
+    ByteStream ministream = mbs_init();
+    Instruction literal = CONcreate_isn(_STRING_, (void *)subsublink.UNION.Node.stor);
+    astream(&ministream, literal);
+    aastream(bs, ministream);
+    
+    mbs_reset(&ministream);
+    Instruction push = CMDcreate_isn(_PUSH, "");
+    astream(&ministream, push);
+    aastream(bs, ministream);
+    
+    (*linker_cnt)++;
+    
+    mbs_reset(&ministream);
+    
+    if (sublink.utype == NODES)
+        {
+            bytecode_IDlinker(&sublink, bs, gem, linker_cnt);
+        }
+    else
+        {   
+            // this means that there is also a third node which
+            Instruction _literal = CONcreate_isn(_STRING_, (void *)sublink.UNION.Node.stor);
+            astream(&ministream, _literal);
+            aastream(bs, ministream);
+            
+            mbs_reset(&ministream);
+            //Instruction push = CMDcreate_isn(_PUSH, "");
+            astream(&ministream, push);
+            aastream(bs, ministream);
+            
+            (*linker_cnt)++;
+        }
+}
+
 void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
 {
     // this loops through all of the nodes in an
@@ -724,18 +770,33 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
         {
              case EQUAL:
                  break;
+             case ADD_EQ:
+                 break;
+             case SUB_EQ:
+                 break;
+             case STAR_EQ:
+                 break;
+             case DIV_EQ:
+                 break;
              
              default:
+                 perror("Undefined operator type");
+                 exit(EXIT_FAILURE);
                  break;   
         }
     
+    //ByteStream value = mbs_init();
     ByteStream value;
+    value.bstream = NULL;
+    value.streamln = 0;
+    value.streamsz = 0;
     if (value_n.utype == NODES)
         {
             // ===============================================================
             // THIS WILL ALWAYS BE AN EXPRESSION IF ITS NODES
             // ===============================================================
             
+            // THIS IS NEXT UP FOR DEVELOPMENT
             //bytecode_expr()
         }
     else
@@ -765,7 +826,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
                 }
             // append the literal to the stream
             astream(&ministream, literal);
-            aastream(bs, ministream);
+            aastream(&value, ministream);
             
             // append the PUSH command to put the literal onto the stack
             mbs_reset(&ministream);
@@ -773,12 +834,15 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
             
             // append the push command to the stream
             astream(&ministream, push);
-            aastream(bs, ministream);  
+            aastream(&value, ministream);  
         }
         
     // we do this one afterwards so that, in bytecode,
     // we 'STO' the value after evaluating the value
     ByteStream assig;
+    assig.bstream = NULL;
+    assig.streamln = 0;
+    assig.streamsz = 0;
     if (assig_n.utype == NODES)
         {
             // ===============================================================
@@ -788,6 +852,26 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
             switch (assig_n.UNION.Nodes.type)
                 {
                     case ID_LINKER:
+                        // in the parser.c, ID_LINKER always has a redudant and useless
+                        // STACK ID_LINKER at the very type.
+                        // it just contains a single other ID_LINKER stack inside.
+                        // therefore we skip over it with 'nodes[0]'
+                        int links = 0;
+                        bytecode_IDlinker(&assig_n.UNION.Nodes.nodes[0], &assig, gem, &links);
+                        // we then want to sequentially load in those keys into the
+                        // respective hashmaps
+                        ByteStream ministream = mbs_init();
+                        
+                        
+                        // thank you stackoverflow
+                        char *seq = malloc(sizeof(char)*(int)log10(links));
+                        sprintf(seq, "%d", links);
+                        
+                        Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                        astream(&ministream, loadseq);
+                        
+                        aastream(&assig, ministream);
+                        
                         break;
                     case LIST_ACC:
                         break;
@@ -810,13 +894,16 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
             astream(&ministream, variable);
             aastream(bs, ministream);
         }
+        
+    aastream(bs, value);
+    aastream(bs, assig);
 }
 
 /* this is just for reference
 
 STACK: [PROGRAM]
         STACK: [ASSIGNMENT]
-                NODE: [ADD_EQ]------->[+=]
+                NODE: [EQUAL]------->[=]
                 STACK: [ID_LINKER]
                         STACK: [ID_LINKER]
                                 NODE: [DECIMAL]------>[.]
@@ -827,15 +914,6 @@ STACK: [PROGRAM]
                                 NODE: [ADD]---------->[+]
                                 NODE: [NUMBER]------->[1]
                                 NODE: [NUMBER]------->[6]
-        STACK: [LIST_ACC]
-                NODE: [IDENTIFIER]--->[list]
-                STACK: [LIST]
-                        STACK: [EXPRESSION]
-                                NODE: [NUMBER]------->[6]
-        STACK: [ASSIGNMENT]
-                NODE: [NUMBER]------->[10]
-                NODE: [NUMBER]------->[6]
-                NODE: [NUMBER]------->[6]
 */
 
 void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
@@ -865,7 +943,10 @@ void bsprint(ByteStream isn)
         {
             if (st[i].isnt == __CMD)
                 {
-                    printf("%s %s", cmdt_types[st[i].data.cmd.cmdt], st[i].data.cmd.val);
+                    enum _COMMAND_ cmd = st[i].data.cmd.cmdt;
+                    printf("%s %s", cmdt_types[cmd], st[i].data.cmd.val);
+                    
+                    if (cmd == _PUSH) printf("\n");
                 }
             else if (st[i].isnt == __MEM)
                 {
@@ -895,7 +976,7 @@ void bsprint(ByteStream isn)
                 }  
              
         }
-    printf("\n\n");
+    printf("\n");
 }
 
 ByteStream compile(NodeMaster *stack)
@@ -927,7 +1008,11 @@ ByteStream compile(NodeMaster *stack)
     printf("%d BYTECODE:\n", bs.streamln);
     for (int i = 0; i < bs.streamln; ++i)
         {   
-            bsprint(bs.bstream[i]);
+            for (int j = 0; j < bs.bstream[i].streamln; ++j)
+                {
+                    bsprint(bs.bstream[i].bstream[j]);
+                }
+            //bsprint(bs.bstream[i]);
             /*enum _COMMAND_ cmdname = cmds[i].cmdt;
             //printf("%s ", cmdt_names[cmdname]);
             switch (cmdname)

@@ -1,3 +1,1 @@
-player.name += 1 + 6;
-
-list[6] = 10;
+player.box.x = 0.5;

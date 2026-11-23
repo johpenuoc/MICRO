@@ -18,6 +18,7 @@ ByteStream mbs_init();
 void mbs_reset(ByteStream *bs);
 void traverse2(NodeMaster *stack, ByteStream *bs,  Genmem *gem);
 
+void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem);
 void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem);
 void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem);
 
