@@ -732,7 +732,11 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
     ByteStream value;
     if (value_n.utype == NODES)
         {
+            // ===============================================================
+            // THIS WILL ALWAYS BE AN EXPRESSION IF ITS NODES
+            // ===============================================================
             
+            //bytecode_expr()
         }
     else
         {
@@ -777,7 +781,17 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
     ByteStream assig;
     if (assig_n.utype == NODES)
         {
-            // process here
+            // ===============================================================
+            // THIS WILL ALWAYS BE A LINKER OR AN LIST[INDEX]
+            // ===============================================================
+            
+            switch (assig_n.UNION.Nodes.type)
+                {
+                    case ID_LINKER:
+                        break;
+                    case LIST_ACC:
+                        break;
+                }
         }
     else
         {
@@ -797,6 +811,32 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
             aastream(bs, ministream);
         }
 }
+
+/* this is just for reference
+
+STACK: [PROGRAM]
+        STACK: [ASSIGNMENT]
+                NODE: [ADD_EQ]------->[+=]
+                STACK: [ID_LINKER]
+                        STACK: [ID_LINKER]
+                                NODE: [DECIMAL]------>[.]
+                                NODE: [IDENTIFIER]--->[player]
+                                NODE: [IDENTIFIER]--->[name]
+                STACK: [EXPRESSION]
+                        STACK: [OPERATION]
+                                NODE: [ADD]---------->[+]
+                                NODE: [NUMBER]------->[1]
+                                NODE: [NUMBER]------->[6]
+        STACK: [LIST_ACC]
+                NODE: [IDENTIFIER]--->[list]
+                STACK: [LIST]
+                        STACK: [EXPRESSION]
+                                NODE: [NUMBER]------->[6]
+        STACK: [ASSIGNMENT]
+                NODE: [NUMBER]------->[10]
+                NODE: [NUMBER]------->[6]
+                NODE: [NUMBER]------->[6]
+*/
 
 void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
 {

@@ -470,3 +470,15 @@ a = 5; name = "john'...
 But, now that the foundations have been laid, the rest should flow quite nicely!
 
 Continuing work.
+
+### 10:24
+I have found another bug with parser.c. 
+
+list[6] = ...;
+
+This doesn't work. Going to pause compiler development and patch issue.
+
+### 10:38
+I've fixed the issue. However, it is still present in parse_scope. I'll deal with that later.
+
+Back to compiler.c development.

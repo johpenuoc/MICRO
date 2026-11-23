@@ -280,6 +280,8 @@ NodeMaster parse_assignment(Token *tokens, int *token_cnt, NodeMaster *mem, size
     NodeMaster token = mem->UNION.Nodes.nodes[mem->UNION.Nodes.nodeln - 1];
     Token next_token = tokens[(*token_cnt) + 1];
     
+    printf("BEFORE:: %s\n", next_token.stor);
+    
     // mstack --> ministack, like a branch in a tree   
     size_t mstacksz = 0;
     NodeMaster mstack;
@@ -1257,7 +1259,7 @@ NodeMaster stack(List *tokens)
             //if (!memupdated) amem(&mem, &memsz, _tokens, ptoken_cnt);
             //else memupdated = false;
             
-            printf("going in token: %s\n", type_names[_tokens[token_cnt].type]);
+            printf("going in token: %s %d\n", type_names[_tokens[token_cnt].type], token_cnt);
             switch (TOKEN_TYPE)
             {
                 case IDENTIFIER:
@@ -1279,7 +1281,13 @@ NodeMaster stack(List *tokens)
                             stacksz += sizeof(mstack);
                             _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
                             _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
-                            _stack.UNION.Nodes.nodeln++; 
+                            _stack.UNION.Nodes.nodeln++;
+                            
+                            umem(&mem, mstack, &memsz);
+                            //token_cnt--;
+                            printf("token_cnt: %d\n", token_cnt);
+                            printf("new token is: %s\n", _tokens[token_cnt].stor);
+                            //token_cnt++;
                         }
                     else if (NEXT_TOKEN_TYPE == EQUAL || NEXT_TOKEN_TYPE == ADD_EQ || NEXT_TOKEN_TYPE == SUB_EQ || NEXT_TOKEN_TYPE == STAR_EQ || NEXT_TOKEN_TYPE == DIV_EQ)
                         {
@@ -1381,6 +1389,7 @@ NodeMaster stack(List *tokens)
                     
                 case EQUAL:
                     {
+                        token_cnt--;
                         NodeMaster mstack = parse_assignment(_tokens, ptoken_cnt, &mem, &memsz);
                         // append it to the stack   
                         stacksz += sizeof(mstack);
