@@ -529,3 +529,45 @@ next will be to convert expressions into bytecode!
 I'm going to go grab lunch neow.
 
 Oh, something to note is that the bytecode_IDlinker() will also have to check for certain node types, mainly FUNCTION_CALL. You may have player.box.move(); or something, but I will implement this later.
+
+### 13:25
+I'm back from eating my lunch. Now is the time to continue development. First order of business: calling a function at the end of an ID link.
+
+Beginning development neow.
+
+### 13:45
+Development has been going well, but I've found another bug in parser.c. 
+
+Patching neow.
+
+### 13:57
+Fixed it. But it's still not pathed for parse_scope, but I'll do that later.
+
+Continuing development with that compiler.
+
+### 14:10
+The linker is working -- still not for function calls though. I have, however, set it up so that will be easy to implement.
+
+Continuing development.
+
+### 15:06
+It has compiled. Theoretically, it 'should' convert code such as
+
+player.box.move() 
+
+into byte code that'll look like
+
+box STRING,
+PUSH
+
+player STRING,
+PUSH
+
+LOAD_SEQ 2
+
+CALL move
+
+--------------------
+LOAD_SEQ will be loading a hashmap stored at box, whereby the key 'move' exists somewhere in there. At that point, the VM will implicitly understand that the previous searches through the hashmap relate to the current function CALL, and will look there first before looking at the general hashmap.
+
+I'm a little tired, so ima go on a walk, buy an energy drink, and let my mind rest. I could've done with more sleep...

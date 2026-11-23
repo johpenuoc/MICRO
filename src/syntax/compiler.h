@@ -18,9 +18,15 @@ ByteStream mbs_init();
 void mbs_reset(ByteStream *bs);
 void traverse2(NodeMaster *stack, ByteStream *bs,  Genmem *gem);
 
-void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem);
-void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem);
-void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem);
+void agem(enum _TYPE_ atype, Genmem *gem);
+void agenm(NodeMaster node, NodeMaster *genm);
+
+void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
+void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
+void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
+void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *linker_cnt);
+void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
+void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
 
 ByteStream compile(NodeMaster *stack);
 

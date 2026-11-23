@@ -1285,8 +1285,6 @@ NodeMaster stack(List *tokens)
                             
                             umem(&mem, mstack, &memsz);
                             //token_cnt--;
-                            printf("token_cnt: %d\n", token_cnt);
-                            printf("new token is: %s\n", _tokens[token_cnt].stor);
                             //token_cnt++;
                         }
                     else if (NEXT_TOKEN_TYPE == EQUAL || NEXT_TOKEN_TYPE == ADD_EQ || NEXT_TOKEN_TYPE == SUB_EQ || NEXT_TOKEN_TYPE == STAR_EQ || NEXT_TOKEN_TYPE == DIV_EQ)
@@ -1310,9 +1308,21 @@ NodeMaster stack(List *tokens)
                             
                             umem(&mem, mstack, &memsz);
                             token_cnt--;
-                            //memupdated = true;
                             
-                            printf("exiting token: %s\n", type_names[_tokens[token_cnt].type]);
+                            // the final linker may be a function call.
+                            // we know if its a function call by whether
+                            // there are brackets on the end of it.
+                            // if there are, then we call it.
+                            if (_tokens[token_cnt].type == RPAREN)
+                                {
+                                    NodeMaster mmstack = mem.UNION.Nodes.nodes[mem.UNION.Nodes.nodeln - 1];
+                                    stacksz += sizeof(mmstack);
+                                    _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
+                                    _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mmstack;
+                                    _stack.UNION.Nodes.nodeln++;
+                                }
+                            
+                            //printf("exiting token: %s\n", type_names[_tokens[token_cnt].type]);
                         }
                     else if (NEXT_TOKEN_TYPE == ADD || NEXT_TOKEN_TYPE == SUB || NEXT_TOKEN_TYPE == STAR || NEXT_TOKEN_TYPE == DIV)
                         {                        
@@ -1398,6 +1408,15 @@ NodeMaster stack(List *tokens)
                         _stack.UNION.Nodes.nodeln++; 
                     }
                     break;
+                /*case SCOLON:
+                    {
+                        NodeMaster mstack = mem.UNION.Nodes.nodes[mem.UNION.Nodes.nodeln - 1];
+                        stacksz += sizeof(mstack);
+                        _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
+                        _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
+                        _stack.UNION.Nodes.nodeln++;
+                    }
+                    break;*/
                     
                 default:
                     token_cnt++;

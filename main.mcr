@@ -1,1 +1,1 @@
-player.box.x = 0.5;
+player.box.move();
