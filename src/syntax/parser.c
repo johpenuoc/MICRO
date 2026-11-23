@@ -310,6 +310,16 @@ NodeMaster parse_assignment(Token *tokens, int *token_cnt, NodeMaster *mem, size
     *token_cnt += 2;
     NodeMaster value = parse_expr(tokens, token_cnt, mem, memsz);
     
+    if (value.UNION.Nodes.nodes[0].utype == NODE)
+        {
+            NodeMaster new_value;
+            new_value.utype = NODE;
+            new_value.UNION.Node.type = value.UNION.Nodes.nodes[0].UNION.Node.type;
+            new_value.UNION.Node.stor = value.UNION.Nodes.nodes[0].UNION.Node.stor;
+            
+            value = new_value;
+        }
+    
     // append value into the stack   
     mstacksz += sizeof(value);
     mstack.UNION.Nodes.nodes = realloc(mstack.UNION.Nodes.nodes, mstacksz);

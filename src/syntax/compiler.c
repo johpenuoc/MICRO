@@ -651,15 +651,150 @@ void traverse2(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
         }
 }
 
+/*Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val)
+{
+    Instruction isn;
+    isn.isnt = __CMD;
+    isn.data.cmd = (CMD) 
+        {
+           .cmdt =  cmdtype,
+           .val = _val
+        };
+    
+    return isn;
+        
+}
+Instruction MEMcreate_isn(enum _MEMTYPE_ memtype, void *_index)
+{
+    Instruction isn;
+    isn.isnt = __MEM;
+    isn.data.mem.memt = memtype;
+    if (memtype == STACK) isn.data.mem.loc.index = *((int *)_index);
+    else if (memtype == HASH) isn.data.mem.loc.key = (char *)_index;
+    else  isn.data.mem.loc.keylistid = *((int *)_index);
+    
+    return isn;
+}
+Instruction CONcreate_isn(enum _DATATYPE_ datatype, void *data)
+{
+    Instruction isn;
+    isn.isnt = __CON;
+    isn.data.con.datat = datatype;
+    isn.data.con.val = data;
+    /*if (datatype == _INT_) isn.data.con.rawdata.val = *((int *)data);
+    else if (datatype == _STRING_) isn.data.con.rawdata.inum = *((char *)data);
+    else if (datatype == _FLOAT_) isn.data.con.rawdata.inum = *((float *)data);
+    
+    return isn;
+}
+
+ByteStream mbs_init();
+void mbs_reset(ByteStream *bs);
+
+void astream(ByteStream *bs, Instruction isn);
+void aministream(ByteStream *bs, Instruction *isns, int isnsln)
+void astream(ByteStream *bs, Instruction isn)
+void aastream(ByteStream *bs, ByteStream isn)
+
+
+*/
+
 void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
 {
     // this loops through all of the nodes in an
     // ASSIGNMENT mstack
-    for (int i = 0; i < node_s->UNION.Nodes.nodeln; ++i)
+    
+    // the operation node is always the first one in an mstack
+    NodeMaster oper_n = node_s->UNION.Nodes.nodes[0];
+    
+    // the assignment node is always the second one in an mstack
+    NodeMaster assig_n = node_s->UNION.Nodes.nodes[1]; 
+    
+    // the value being assigned is always the third one in an mstack
+    NodeMaster value_n = node_s->UNION.Nodes.nodes[2];
+    
+    // we then take both previous values are process them, 
+    // as they could be either linkers, lists, or whatever 
+    // of the like
+    
+    // we sit this here first because if the operator happens to be
+    // a '+=', then we need to add the previous assig_n value onto
+    // the evaluated expression
+    switch (oper_n.UNION.Node.type)
         {
-            NodeMaster node = node_s->UNION.Nodes.nodes[i];
+             case EQUAL:
+                 break;
              
+             default:
+                 break;   
+        }
+    
+    ByteStream value;
+    if (value_n.utype == NODES)
+        {
             
+        }
+    else
+        {
+            // ===============================================================
+            // THIS IS IF THE VALUE ON THE RIGHT IN AN ASSIGNMENT IS A SINGLE
+            // VALUE, LIKE [name = "john"] OR [number = 10.5]
+            // ===============================================================
+            
+            ByteStream ministream = mbs_init();
+            // Casted convert(char *string, enum _DATATYPE_ type)
+            char *value_s = value_n.UNION.Node.stor;
+            Casted implicit_cast = convert(value_s, type(value_s));
+            
+            Instruction literal;
+            switch (implicit_cast.type)
+                {
+                    case _INT_:
+                        literal = CONcreate_isn(_INT_, (void *)&implicit_cast.data.inum);
+                        break;
+                    case _FLOAT_:
+                        literal = CONcreate_isn(_FLOAT_, (void *)&implicit_cast.data.fnum);
+                        break;
+                    case _STRING_:
+                        literal = CONcreate_isn(_STRING_, (void *)&implicit_cast.data.string);
+                        break;
+                }
+            // append the literal to the stream
+            astream(&ministream, literal);
+            aastream(bs, ministream);
+            
+            // append the PUSH command to put the literal onto the stack
+            mbs_reset(&ministream);
+            Instruction push = CMDcreate_isn(_PUSH, "");
+            
+            // append the push command to the stream
+            astream(&ministream, push);
+            aastream(bs, ministream);  
+        }
+        
+    // we do this one afterwards so that, in bytecode,
+    // we 'STO' the value after evaluating the value
+    ByteStream assig;
+    if (assig_n.utype == NODES)
+        {
+            // process here
+        }
+    else
+        {
+            // convert straight into bytecode here
+            
+            // ===============================================================
+            // THIS IS IF THE VALUE ON THE LEFT IN JUST A SINGLE VARIABLE LIKE
+            // [name = "john"] OR [number = 10.5], NOT A LINKER
+            // ===============================================================
+            ByteStream ministream = mbs_init();
+            
+            char *var = assig_n.UNION.Node.stor;
+            Instruction variable = CMDcreate_isn(_STO, var);
+            
+            // append the literal to the stream
+            astream(&ministream, variable);
+            aastream(bs, ministream);
         }
 }
 
@@ -690,7 +825,7 @@ void bsprint(ByteStream isn)
         {
             if (st[i].isnt == __CMD)
                 {
-                    printf("%s ", cmdt_types[st[i].data.cmd.cmdt]);
+                    printf("%s %s", cmdt_types[st[i].data.cmd.cmdt], st[i].data.cmd.val);
                 }
             else if (st[i].isnt == __MEM)
                 {
@@ -739,13 +874,15 @@ ByteStream compile(NodeMaster *stack)
     bs.bstream = NULL;
     bs.streamln = 0;
     bs.streamsz = 0;
-    for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
+    /*for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
             enum _TYPE_ ptype = stack->UNION.Nodes.type;
             NodeMaster node_s = stack->UNION.Nodes.nodes[i];
             traverse(&node_s, PROGRAM, &bs,  &gem);
         }
-    //traverse2(stack, &bs,  &gem);
+    //traverse2(stack, &bs,  &gem);*/
+    
+    traverse3(stack, &bs, &gem);
     
     printf("%d BYTECODE:\n", bs.streamln);
     for (int i = 0; i < bs.streamln; ++i)

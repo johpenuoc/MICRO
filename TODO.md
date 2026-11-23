@@ -441,3 +441,32 @@ PUSH -> pushes the last value onto the stack
 I've made a primitive and fairly crude start to my implementation. So far, in my head at least, it seems as though it'll work. 
 
 I'm going to head to Church neow. After that and a good meal, I'm going to lock in. By the end of today, some good BYTECODE is going to be generated!
+
+## 23/11/26
+### 8:13
+Last night I had found some problems that I didn't see before. For example, the parser wouldnt understand 
+
+player.box.centre = new_x; 
+
+or something. Anyways, I fixed that!
+
+Time to continue with the bytecode generator.
+
+### 8:25
+If we have something like 
+
+x = 5;
+
+'5' will be sorted in bytecode as:
+    LITERAL INT 5,
+    PUSH,
+    STO x,
+    
+### 10:12
+Okidokie. I have completed the initial, primitive design. It works for very simple assignments like
+
+a = 5; name = "john'...
+
+But, now that the foundations have been laid, the rest should flow quite nicely!
+
+Continuing work.

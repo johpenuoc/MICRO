@@ -1,6 +1,1 @@
-a = 3;
-
-fn function()
-{
-     player.box.x = 6;   
-}
+a = 0.5;

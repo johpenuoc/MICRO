@@ -2,8 +2,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
-char *ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_\"!=+-/*^&|";
+char *ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_\"!=+-/*^&|@~";
 char *TERM = "(){}[],.:;+-*/=^><!?";
 char *MODE = "\"#";
 
@@ -285,18 +286,203 @@ bool only_numbers(char *string, int string_length)
 {
     // forgot why i even put this here...
     // i should comment wayyyy more often
-    if (string[string_length - 1] == '.') return false;
+    //if (string[string_length - 1] == '.') return false;
     
+    // this wont stop floats because '.' isnt included in ALPHA
     for (int i = 0; i < string_length; ++i)
         {
             if (is_in(ALPHA, string[i], strlen(ALPHA)))
                 {
                     return false;
                 }
-            
         }
     
     return true;
 }
 
+enum _DATATYPE_ is_int_float(char *string)
+{
+    int sln = strlen(string);    
+    bool possible_float = false;
+    for (int i = 0; i < sln; ++i)
+        {
+            if (is_in(ALPHA, string[i], strlen(ALPHA)))
+                {
+                    return _STRING_;
+                }
+            
+            if (string[i] == '.') possible_float = true;
+        }
+        
+    if (possible_float) return _FLOAT_;
+    else return _INT_;
+}
 
+enum _DATATYPE_ type(char *s)
+{
+    return is_int_float(s);
+}
+
+int cast_to_int(char *string, int stop_id)
+{
+    int num = 0;
+    int sln = strlen(string);
+    for (int i = 0; i < sln - stop_id; ++i)
+        {
+            // 506
+            /*
+            6 * (10^1) = 6
+            0 * (10^2) = 0 -- 106 --> 1 * (10^2) --> 106
+            */
+            int pos = (int)round(pow(10, i));
+            int zero_tracker = 0;
+            switch (string[sln - i - 1])
+                {
+                    case '0':
+                        num += 1 * pos;
+                        zero_tracker += 1 * pos;
+                        break;
+                    case '1':
+                        num += (1 * pos) - zero_tracker;
+                        break;
+                    case '2':
+                        num += (2 * pos) - zero_tracker;
+                        break;
+                    case '3':
+                        num += (3 * pos) - zero_tracker;
+                        break;
+                    case '4':
+                        num += (4 * pos) - zero_tracker;
+                        break;
+                    case '5':
+                        num += (5 * pos) - zero_tracker;
+                        break;
+                    case '6':
+                        num += (6 * pos) - zero_tracker;
+                        break;
+                    case '7':
+                        num += (7 * pos) - zero_tracker;
+                        break;
+                    case '8':
+                        num += (8 * pos) - zero_tracker;
+                        break;
+                    case '9':
+                        num += (9 * pos) - zero_tracker;
+                        break;
+                    default:
+                        perror("Value is not a number");
+                        exit(EXIT_FAILURE);
+                        return num;                           
+                }
+        }
+        
+    return num;
+}
+int special_cast_to_int(char *string, int stop_id)
+{
+    int num = 0;
+    int sln = strlen(string);
+    for (int i = stop_id; i < sln; ++i)
+        {
+            // 506
+            /*
+            6 * (10^1) = 6
+            0 * (10^2) = 0 -- 106 --> 1 * (10^2) --> 106
+            */
+            int pos = (int)round(pow(10, i));
+            int zero_tracker = 0;
+            switch (string[sln - i - 1])
+                {
+                    case '0':
+                        num += 1 * pos;
+                        zero_tracker += 1 * pos;
+                        break;
+                    case '1':
+                        num += (1 * pos) - zero_tracker;
+                        break;
+                    case '2':
+                        num += (2 * pos) - zero_tracker;
+                        break;
+                    case '3':
+                        num += (3 * pos) - zero_tracker;
+                        break;
+                    case '4':
+                        num += (4 * pos) - zero_tracker;
+                        break;
+                    case '5':
+                        num += (5 * pos) - zero_tracker;
+                        break;
+                    case '6':
+                        num += (6 * pos) - zero_tracker;
+                        break;
+                    case '7':
+                        num += (7 * pos) - zero_tracker;
+                        break;
+                    case '8':
+                        num += (8 * pos) - zero_tracker;
+                        break;
+                    case '9':
+                        num += (9 * pos) - zero_tracker;
+                        break;
+                    default:
+                        perror("Value is not a number");
+                        exit(EXIT_FAILURE);
+                        return num;                           
+                }
+        }
+        
+    return num;
+}
+
+float cast_to_float(char *string)
+{
+    char dot_id = 0;
+    for (int i = 0; i < strlen(string); ++i)
+        {
+            if (string[i] == '.')
+                {
+                    dot_id = i + 1;
+                    break;
+                }
+        }
+    
+    int ten_power = 10;
+    int num = cast_to_int(string, dot_id);
+    if (num > 9 && num < 100) ten_power = 100;
+    else if (num > 99 && num < 1000) ten_power = 1000;
+    else if (num > 999 & num < 10000) ten_power = 10000;
+    float _num = (float)num / (float)ten_power;
+    float __num = (float)special_cast_to_int(string, dot_id + 1);
+    
+    return __num + _num;
+}
+
+typedef struct
+{
+    enum _DATATYPE_ type;
+    union
+    {
+        char *string;
+        int inum;
+        float fnum;
+    } data;
+    
+} Casted;
+
+Casted convert(char *string, enum _DATATYPE_ type)
+{
+    Casted cast;
+    cast.type = type;
+    switch (type)
+        {
+            case _INT_:
+                cast.data.inum = cast_to_int(string, 0);
+                return cast;
+            case _FLOAT_:
+                cast.data.fnum = cast_to_float(string);
+                return cast;
+            case _STRING_:
+                cast.data.string = string;
+                return cast;
+        }
+}

@@ -175,8 +175,28 @@ typedef struct
     
 } Genmem;
 
+
+typedef struct
+{
+    enum _DATATYPE_ type;
+    union
+    {
+        char *string;
+        int inum;
+        float fnum;
+    } data;
+    
+} Casted;
+
 void debugp(char *s);
 bool is_in(char *string, char c, int string_length);
 bool only_numbers(char *string, int string_length);
+enum _DATATYPE_ is_int_float(char *string);
+enum _DATATYPE_ type(char *s);
+
+int cast_to_int(char *string, int stop_id);
+int special_cast_to_int(char *string, int stop_id);
+float cast_to_float(char *string);
+Casted convert(char *string, enum _DATATYPE_ type);
 
 #endif
