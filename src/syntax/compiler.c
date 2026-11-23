@@ -112,349 +112,41 @@ Instruction CONcreate_isn(enum _DATATYPE_ datatype, void *data)
     return isn;
 }
 
-void aministream(ByteStream *bs, Instruction *isns, int isnsln)
+void am_stream(ByteStream *bs, ByteStream sub_bs)
 {
-    for (int i = 0; i < isnsln - 1; ++i)
-        {
-            astream(bs, isns[i]);
-        }
+    bs->UNION.ms.streamsz += sizeof(sub_bs);
+    bs->UNION.ms.stream = realloc(bs->UNION.ms.stream, bs->UNION.ms.streamsz);
+    bs->UNION.ms.stream[bs->UNION.ms.streamln] = sub_bs;
+    bs->UNION.ms.streamln++;
 }
-
-void astream(ByteStream *bs, Instruction isn)
+void ai_stream(ByteStream *bs, Instruction ins)
 {
-    bs->streamsz += sizeof(isn);
-    bs->stream = realloc(bs->stream, bs->streamsz);
-    bs->stream[bs->streamln] = isn;
-    (bs->streamln)++;
+    bs->UNION.is.streamsz += sizeof(ins);
+    bs->UNION.is.stream = realloc(bs->UNION.is.stream, bs->UNION.is.streamsz);
+    bs->UNION.is.stream[bs->UNION.is.streamln] = ins;
+    bs->UNION.is.streamln++;
 }
-
-void aastream(ByteStream *bs, ByteStream isn)
+void create_mbs(ByteStream *bs)
 {
-    bs->streamsz += sizeof(isn);
-    bs->bstream = realloc(bs->bstream, bs->streamsz);
-    bs->bstream[bs->streamln] = isn;
-    (bs->streamln)++;
+    bs->is_master = true;
+    bs->UNION.ms.stream = NULL;
+    bs->UNION.ms.streamln = 0;
+    bs->UNION.ms.streamsz = 0;
 }
-
-//CMD* cmds, size_t *cmdsz, int *cmdln
-void traverse(NodeMaster *stack, enum _TYPE_ ptype, ByteStream *bs,  Genmem *gem)
+void create_ibs(ByteStream *bs)
 {
-    if (stack->utype == NODE)
-        {
-            //printf("Ntype: %s\n", type_names[stack->UNION.Node.type]);
-            const enum _TYPE_ STYPE = stack->UNION.Node.type;
-            char *val = stack->UNION.Node.stor;
-            enum _COMMAND_ ctype;
-            
-            switch (STYPE)
-                {
-                    case EQUAL:
-                        {
-                            //ctype = _STO;
-                            
-                            //_STO ID[top], mem[top]
-                            
-                            // similar to the mstack and mini branches
-                            ByteStream ministream;
-                            ministream.stream = NULL;
-                            ministream.streamsz = 0;
-                            ministream.streamln = 0;
-                            
-                            Instruction opcode = CMDcreate_isn(_STO, "");
-                            astream(&ministream, opcode);
-                            
-                            /*int p = 1;
-                            Instruction memloc1 = MEMcreate_isn(STACK, (void *)&p);
-                            astream(&ministream, memloc1);*/
-                            
-                            /*char *s = "";
-                            Instruction memloc1 = MEMcreate_isn(KEYLIST, (void *)s);
-                            astream(&ministream, memloc1);*/
-                            
-                            /*char *p2 = "KEYL[-1]";
-                            Instruction memloc2 = MEMcreate_isn(HASH, (void *)p2);
-                            astream(&ministream, memloc2);*/
-                            
-                            // create complete instruction
-                            // by appending them to the stream
-                            aastream(bs, ministream);
-                        }
-                        break;
-                    case DECIMAL:
-                        {
-                           // similar to the mstack and mini branches
-                           /*ByteStream ministream;
-                           ministream.stream = NULL;
-                           ministream.streamsz = 0;
-                           ministream.streamln = 0;
-                           
-                           Instruction opcode = CMDcreate_isn(_HASH_SEQ, "");
-                           astream(&ministream, opcode);
-                           
-                           aastream(bs, ministream);*/
-                        }
-                        break;
-                    case IDENTIFIER:
-                        {
-                            //printf(">> %s\n", type_names[gem->types[gem->ln - 1]]);
-                            if (ptype == FUNCTION_CALL) 
-                                {
-                                   //ctype = _CALL; 
-                                   
-                                   //_CALL hashmap[FUNC_ID%d]
-                                   
-                                   // similar to the mstack and mini branches
-                                   ByteStream ministream;
-                                   ministream.stream = NULL;
-                                   ministream.streamsz = 0;
-                                   ministream.streamln = 0;
-                                   
-                                   Instruction opcode = CMDcreate_isn(_PUSH, "");
-                                   astream(&ministream, opcode);
-                                   
-                                   char *s = stack->UNION.Node.stor;
-                                   Instruction context = CONcreate_isn(_STRING_, (void *)s);
-                                   astream(&ministream, context);
-                                   
-                                   aastream(bs, ministream);
-                                   
-                                   mbs_reset(&ministream);
-                            
-                                   Instruction _opcode = CMDcreate_isn(_CALL, "");
-                                   astream(&ministream, _opcode);
-                                   /*char *s = stack->UNION.Node.stor;
-                                   Instruction memloc = MEMcreate_isn(HASH, (void *)s);
-                                   astream(&ministream, memloc);*/
-                                   
-                                   aastream(bs, ministream);
-                                }
-                            else if (ptype == ID_LINKER)
-                                {
-                                   // similar to the mstack and mini branches
-                                   ByteStream ministream;
-                                   ministream.stream = NULL;
-                                   ministream.streamsz = 0;
-                                   ministream.streamln = 0;
-                                   
-                                   Instruction opcode = CMDcreate_isn(_PUSH, "");
-                                   astream(&ministream, opcode);
-                                   
-                                   char *s = stack->UNION.Node.stor;
-                                   Instruction context = CONcreate_isn(_STRING_, (void *)s);
-                                   astream(&ministream, context);
-                                   
-                                   aastream(bs, ministream);
-                                   
-                                   mbs_reset(&ministream);
-                                   
-                                   Instruction _opcode = CMDcreate_isn(_HASH, "");
-                                   astream(&ministream, _opcode);
-                                   
-                                   aastream(bs, ministream);
-                                }
-                            else 
-                                {
-                                    ctype = _ID;
-                                    
-                                    //_ID_PUSH _ID
-                                    
-                                    // similar to the mstack and mini branches
-                                    ByteStream ministream;
-                                    ministream.stream = NULL;
-                                    ministream.streamsz = 0;
-                                    ministream.streamln = 0;
-                                    
-                                    if (gem->types[gem->ln - 1] == ASSIGNMENT)
-                                        {
-                                             Instruction opcode = CMDcreate_isn(_PUSH_KEYL, "");
-                                             astream(&ministream, opcode);
-                                             
-                                             /*char *s = stack->UNION.Node.stor;
-                                             Instruction memloc = MEMcreate_isn(HASH, (void *)s);
-                                             astream(&ministream, memloc);*/
-                                             
-                                             char *s = stack->UNION.Node.stor;
-                                             Instruction context = CONcreate_isn(_STRING_, (void *)s);
-                                             astream(&ministream, context);
-                                        }
-                                    else
-                                        {                                            
-                                            Instruction opcode = CMDcreate_isn(_PUSH, "");
-                                            astream(&ministream, opcode); 
-                                            
-                                            char *s = stack->UNION.Node.stor;
-                                            Instruction context = CONcreate_isn(_STRING_, (void *)s);
-                                            astream(&ministream, context);
-                                            
-                                            aastream(bs, ministream);
-                                            
-                                            mbs_reset(&ministream);
-                                            
-                                            // _HASH and _LOAD are basically the same...
-                                            // I just realised...
-                                            Instruction _opcode = CMDcreate_isn(_HASH, "");
-                                            astream(&ministream, _opcode);
-                                            
-                                            aastream(bs, ministream);
-                                            
-                                            /*char *s = stack->UNION.Node.stor;
-                                            Instruction memloc = MEMcreate_isn(HASH, (void *)s);
-                                            astream(&ministream, memloc);*/
-                                            
-                                        }
-                                        
-                                    /*Instruction opcode = CMDcreate_isn(_LOAD, "");
-                                    astream(&ministream, opcode);
-                                    
-                                    char *s = stack->UNION.Node.stor;
-                                    Instruction memloc = MEMcreate_isn(HASH, (void *)s);
-                                    astream(&ministream, memloc);*/
-                                    
-                                    //aastream(bs, ministream);
-                                }
-                        }
-                        break;
-                    case ADD:
-                        {
-                            ctype = _ADD;
-                        }
-                        break;
-                    case SUB:
-                        {
-                            ctype = _SUB;
-                        }
-                        break;
-                    case DIV:
-                        {
-                            ctype = _DIV;
-                        }
-                        break;
-                    case STAR:
-                        {
-                            ctype = _MUL;
-                            
-                            // PUSH
-                            
-                            // similar to the mstack and mini branches
-                            ByteStream ministream;
-                            ministream.stream = NULL;
-                            ministream.streamsz = 0;
-                            ministream.streamln = 0;
-                            
-                            Instruction _opcode = CMDcreate_isn(_PUSH, "");
-                            astream(&ministream, _opcode);
-                            
-                            aastream(bs, ministream);
-                            
-                            //_MUL mem[top], mem[n - 2]
-                            
-                            ministream.stream = NULL;
-                            ministream.streamsz = 0;
-                            ministream.streamln = 0;
-                            
-                            Instruction opcode = CMDcreate_isn(_MUL, "");
-                            astream(&ministream, opcode);
-                            /*int p = 1;
-                            Instruction memloc1 = MEMcreate_isn(STACK, (void *)&p);
-                            astream(&ministream, memloc1);
-                            int p2 = 2;
-                            Instruction memloc2 = MEMcreate_isn(STACK, (void *)&p2);
-                            astream(&ministream, memloc2);*/
-                            
-                            aastream(bs, ministream);
-                        }
-                        break;
-                    case NUMBER:
-                        {
-                            ctype = _LITERAL;
-                            
-                            //_PUSH _NUMBER, INT
-                            
-                            // similar to the mstack and mini branches
-                            ByteStream ministream;
-                            ministream.stream = NULL;
-                            ministream.streamsz = 0;
-                            ministream.streamln = 0;
-                            
-                            Instruction opcode = CMDcreate_isn(_PUSH, "");
-                            astream(&ministream, opcode);
-                            /*int p = stack->UNION.Node.stor;
-                            Instruction memloc = MEMcreate_isn(STACK, (void *)p);
-                            astream(&ministream, memloc);*/
-                            int p = 5;
-                            Instruction context = CONcreate_isn(_INT_, (void *)&p);
-                            astream(&ministream, context);
-                            
-                            aastream(bs, ministream);                 
-                        }
-                        break;
-                    default:
-                        //printf("default: %s\n", type_names[stack->UNION.Nodes.type]);
-                        break;
-                    
-                }
-                
-            // we append each NODE to gem (general memory)
-            /**gemsz += sizeof(*stack);
-            gem->UNION.Nodes.nodes = realloc(gem->UNION.Nodes.nodes, *gemsz);
-            gem->UNION.Nodes.nodes[gem->UNION.Nodes.nodeln] = *stack;
-            gem->UNION.Nodes.nodeln++;*/
-            //CMD c = spawn(ctype, 2, val);
-            //acmd(cmds, cmdsz, cmdln, spawn(ctype, 2, val));
-        }
-    else
-        {      
-            //printf("stack len %d\n", stack->UNION.Nodes.nodeln);
-            //(*depth)++;
-            /**gemsz += sizeof(*stack);
-            gem->UNION.Nodes.nodes = realloc(gem->UNION.Nodes.nodes, *gemsz);
-            gem->UNION.Nodes.nodes[gem->UNION.Nodes.nodeln] = *stack;
-            gem->UNION.Nodes.nodeln++;*/
-            gem->size += sizeof(stack->UNION.Nodes.type);
-            gem->types = realloc(gem->types, gem->size);
-            gem->types[gem->ln] = stack->UNION.Nodes.type;
-            gem->ln++;
-            //printf("NStype: %s  len: %d\n", type_names[stack->UNION.Nodes.type], stack->UNION.Nodes.nodeln);
-            //for (int i = (stack->UNION.Nodes.nodeln - 1); i >= 0; --i)
-            for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
-                {
-                    enum _TYPE_ ptype = stack->UNION.Nodes.type;
-                    if (ptype == FUNCTION_CALL || ptype == ASSIGNMENT)
-                        {
-                            NodeMaster node_s = stack->UNION.Nodes.nodes[stack->UNION.Nodes.nodeln - i - 1];
-                            traverse(&node_s, ptype, bs,  gem);
-                        }
-                    else
-                        {
-                            NodeMaster node_s = stack->UNION.Nodes.nodes[i];
-                            traverse(&node_s, ptype, bs,  gem);
-                        }
-                    //NodeMaster node_s = stack->UNION.Nodes.nodes[i];
-                    //traverse(&node_s, ptype, bs,  gem);
-                }
-            //(*depth)--;
-        }
+    bs->is_master = false;
+    bs->UNION.is.stream = NULL;
+    bs->UNION.is.streamln = 0;
+    bs->UNION.is.streamsz = 0;
 }
-
-// mini-bytestream init
-ByteStream mbs_init()
+void reset_ibs(ByteStream *bs)
 {
-    // similar to the mstack and mini branches
-    ByteStream ministream;
-    ministream.stream = NULL;
-    ministream.streamsz = 0;
-    ministream.streamln = 0;
-    
-    return ministream;
+    bs->is_master = false;
+    bs->UNION.is.stream = NULL;
+    bs->UNION.is.streamln = 0;
+    bs->UNION.is.streamsz = 0;
 }
-
-void mbs_reset(ByteStream *bs)
-{
-    bs->stream = NULL;
-    bs->streamsz = 0;
-    bs->streamln = 0;
-}
-
 /*
 STACK: [ASSIGNMENT]
         NODE: [EQUAL]-------->[=]
@@ -474,237 +166,6 @@ STACK: [ASSIGNMENT]
                                         NODE: [NUMBER]------->[0.5]
 */
 
-void traverse2(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
-{   
-    enum _UTYPE_ sutype = stack->utype;
-    if (sutype == NODE)
-        {
-            enum _TYPE_ parent_parent_type = gem->types[gem->ln - 2];
-            enum _TYPE_ parent_type = gem->types[gem->ln - 1];
-            enum _TYPE_ curr_type = stack->UNION.Node.type;
-            
-            switch(curr_type)
-                {
-                    case DECIMAL:
-                        {
-                            // this method create redundant bytecode
-                            // for example : HASH_SEQ HASH_SEQ
-                            ByteStream ministream = mbs_init();
-                            switch (parent_type)
-                                {
-                                    case ID_LINKER:
-                                        Instruction memloc = CMDcreate_isn(_HASH_SEQ, "");
-                                        astream(&ministream, memloc);
-                                        aastream(bs, ministream);
-                                        break;
-                                }
-                        }
-                        break;
-                    case IDENTIFIER: // 
-                        {
-                            /*STACK: [ID_LINKER]
-                                STACK: [ID_LINKER]
-                                        NODE: [DECIMAL]------>[.]
-                                        STACK: [ID_LINKER]
-                                                NODE: [DECIMAL]------>[.] 
-                                                NODE: [IDENTIFIER]--->[player] PUSH player STRING
-                                                NODE: [IDENTIFIER]--->[box]
-                                        STACK: [FUNCTION_CALL]
-                                                NODE: [IDENTIFIER]--->[move]
-                                                STACK: [ARGUMENTS]*/
-                            // HASH_SEQ
-                            // PUSH ID1 STRING
-                            // PUSH ID2 STRING
-                            // ...
-                            //                 END_HASH_SEQ
-                            // CALL
-                            // ============================
-                            // 
-                            ByteStream ministream = mbs_init();
-                            switch (parent_type)
-                                {
-                                    case ID_LINKER:
-                                        {
-                                            // we push the key onto the stack
-                                            Instruction opcode = CMDcreate_isn(_PUSH, "");
-                                            astream(&ministream, opcode);
-                                            char *key = stack->UNION.Node.stor;
-                                            Instruction context = CONcreate_isn(_STRING_, (void *)key);
-                                            astream(&ministream, context);
-                                            aastream(bs, ministream);
-                                            
-                                            /*mbs_reset(&ministream);
-                                            // afterwards we will use a hash look-up
-                                            // using the latest item on the stack
-                                            Instruction memloc = MEMcreate_isn(HASH, "");
-                                            astream(&ministream, memloc);*/
-                                            //aastream(bs, ministream);   
-                                        } 
-                                        break;
-                                    case FUNCTION_CALL:
-                                        {
-                                            switch (parent_parent_type)
-                                                {
-                                                    case ID_LINKER:
-                                                        {
-                                                            // we push the key onto the stack
-                                                            Instruction opcode = CMDcreate_isn(_PUSH, "");
-                                                            astream(&ministream, opcode);
-                                                            char *key = stack->UNION.Node.stor;
-                                                            Instruction context = CONcreate_isn(_STRING_, (void *)key);
-                                                            astream(&ministream, context);
-                                                            aastream(bs, ministream);
-                                                            
-                                                            // ==============================================
-                                                            // we will have to code the VM to figure this out
-                                                            // implicitly...
-                                                            // ==============================================
-                                                            // end the hash sequence loading
-                                                            /*mbs_reset(&ministream);
-                                                            Instruction opcode = CMDcreate_isn(_END_HASH_SEQ, "");
-                                                            astream(&ministream, opcode);
-                                                            aastream(bs, ministream);*/
-                                                            
-                                                            // push the data into the stack
-                                                            /*mbs_reset(&ministream);
-                                                            Instruction _opcode = CMDcreate_isn(_PUSH, "");
-                                                            astream(&ministream, _opcode);
-                                                            aastream(bs, ministream);*/
-                                                            
-                                                            // call the function from the stack
-                                                            mbs_reset(&ministream);
-                                                            Instruction __opcode = CMDcreate_isn(_CALL, "");
-                                                            astream(&ministream, __opcode);
-                                                            aastream(bs, ministream);
-                                                        }
-                                                        break;
-                                                }
-                                                break;
-                                        }
-                                    case EXPRESSION:
-                                        {
-                                             switch (parent_parent_type)
-                                                 {
-                                                     case ARGUMENTS:
-                                                        {
-                                                            Instruction arg = CMDcreate_isn(_LOAD, "");
-                                                            astream(&ministream, arg);
-                                                            char *key = stack->UNION.Node.stor;
-                                                            Instruction context = CONcreate_isn(_STRING_, (void *)key);
-                                                            astream(&ministream, context);
-                                                            aastream(bs, ministream);
-                                                        }
-                                                        break;
-                                                 }   
-                                        }
-                                        break;
-                                    case ASSIGNMENT:
-                                        break;
-                                    case OPERATION:
-                                        break;
-                                }
-                        }
-                        break;
-                        
-                }
-        }
-    else
-        {
-            gem->size += sizeof(stack->UNION.Nodes.type);
-            gem->types = realloc(gem->types, gem->size);
-            gem->types[gem->ln] = stack->UNION.Nodes.type;
-            gem->ln++;
-            
-            /*for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
-                {
-                    enum _TYPE_ ptype = stack->UNION.Nodes.type;
-                    NodeMaster node_s = stack->UNION.Nodes.nodes[i];
-                    
-                    // this should mean that on STACK (or NODES) we loop forward
-                    // but when we're on a NODE (inside a STACK), we loop backwards
-                    if (node_s.utype != NODES)
-                        {
-                            //printf("N: %s\n", type_names[node_s.UNION.Node.type]);
-                            traverse2(&node_s, bs,  gem);;
-                        }
-                    else
-                        {
-                            int ln = node_s.UNION.Nodes.nodeln;
-                            for (int j = ln - 1; j >= 0; --j)
-                                {
-                                    NodeMaster _node_s = node_s.UNION.Nodes.nodes[j];
-                                    //printf("NS: %s\n", type_names[_node_s.UNION.Node.type]);
-                                    traverse2(&_node_s, bs,  gem);;
-                                }
-                        }
-                }*/
-                
-            
-            for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
-                {
-                    enum _TYPE_ stack_type = stack->UNION.Nodes.type;
-                    if (stack_type == FUNCTION_CALL)
-                        {
-                            NodeMaster node_s = stack->UNION.Nodes.nodes[stack->UNION.Nodes.nodeln - i - 1];
-                            traverse2(&node_s, bs,  gem);
-                        }
-                    else
-                        {
-                            NodeMaster node_s = stack->UNION.Nodes.nodes[i];
-                            traverse2(&node_s, bs,  gem);
-                        }
-                }
-        }
-}
-
-/*Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val)
-{
-    Instruction isn;
-    isn.isnt = __CMD;
-    isn.data.cmd = (CMD) 
-        {
-           .cmdt =  cmdtype,
-           .val = _val
-        };
-    
-    return isn;
-        
-}
-Instruction MEMcreate_isn(enum _MEMTYPE_ memtype, void *_index)
-{
-    Instruction isn;
-    isn.isnt = __MEM;
-    isn.data.mem.memt = memtype;
-    if (memtype == STACK) isn.data.mem.loc.index = *((int *)_index);
-    else if (memtype == HASH) isn.data.mem.loc.key = (char *)_index;
-    else  isn.data.mem.loc.keylistid = *((int *)_index);
-    
-    return isn;
-}
-Instruction CONcreate_isn(enum _DATATYPE_ datatype, void *data)
-{
-    Instruction isn;
-    isn.isnt = __CON;
-    isn.data.con.datat = datatype;
-    isn.data.con.val = data;
-    /*if (datatype == _INT_) isn.data.con.rawdata.val = *((int *)data);
-    else if (datatype == _STRING_) isn.data.con.rawdata.inum = *((char *)data);
-    else if (datatype == _FLOAT_) isn.data.con.rawdata.inum = *((float *)data);
-    
-    return isn;
-}
-
-ByteStream mbs_init();
-void mbs_reset(ByteStream *bs);
-
-void astream(ByteStream *bs, Instruction isn);
-void aministream(ByteStream *bs, Instruction *isns, int isnsln)
-void astream(ByteStream *bs, Instruction isn)
-void aastream(ByteStream *bs, ByteStream isn)
-
-
-*/
-
 void agem(enum _TYPE_ atype, Genmem *gem)
 {
     gem->size += sizeof(atype);
@@ -722,9 +183,7 @@ void agenm(NodeMaster node, NodeMaster *genm)
 void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
     ByteStream ministream;
-    ministream.bstream = NULL;
-    ministream.streamln = 0;
-    ministream.streamsz = 0;
+    create_mbs(&ministream);
     
     // there are no arguments, so we simply return
     if (node_s->UNION.Nodes.nodeln < 1) return;
@@ -756,50 +215,60 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
 
 void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
-    ByteStream ministream = mbs_init();
+    //ByteStream ministream = mbs_init();
+    ByteStream ministream;
+    create_mbs(&ministream);
     
     // we want to load any arguments first, of course
     NodeMaster arg_stack = node_s->UNION.Nodes.nodes[1];
     bytecode_args(&arg_stack, &ministream, gem, genm);
     
+    ByteStream mministream;
+    create_ibs(&mministream);
     // at index 1 (true index is list[0]), will always be the function name 
     char *func_name = node_s->UNION.Nodes.nodes[0].UNION.Node.stor;
     Instruction call = CMDcreate_isn(_CALL, func_name);
-    astream(&ministream, call);
-    aastream(bs, ministream);
+    // PROBLEM HERE
+    ai_stream(&mministream, call);
+    am_stream(&ministream, mministream);
+    am_stream(bs, ministream);
 }
 
 void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
     ByteStream ministream;
-    ministream.bstream = NULL;
-    ministream.streamln = 0;
-    ministream.streamsz = 0;
+    create_mbs(&ministream);
     
     int links = 0;
     bytecode_IDlinker(node_s, &ministream, gem, genm, &links);
     
+    debugp("before if");
     if (gem->types[gem->ln - 1] == FUNCTION_CALL)
         {
+            debugp("inside if");
             // this means that there was a function at the end
             // of the linker, such as: player.box.move();
             
-            ByteStream mministream = mbs_init();
+            ByteStream mministream;
+            create_ibs(&mministream);
             
             char *seq = malloc(sizeof(char)*(int)log10(links));
             sprintf(seq, "%d", links);
             
             Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
-            astream(&mministream, loadseq);
+            ai_stream(&mministream, loadseq);
+            am_stream(&ministream, mministream);
             
-            aastream(&ministream, mministream);
-            
-            mbs_reset(&mministream);
+            reset_ibs(&mministream);
             
             // we need to load the function now
             bytecode_func(&genm->UNION.Nodes.nodes[genm->UNION.Nodes.nodeln - 1], &ministream, gem, genm);
             
+            debugp("Appended bytecode for FUNCATION_CALL");
         }
+    debugp("outside and after if");
+        
+    am_stream(bs, ministream);
 }
 
 void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *linker_cnt)
@@ -808,31 +277,38 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
     // one '.'
     // otherwise it means that its a single dot like player.x or something
     
+    //printf("master %s %d\n", type_names[node_s->UNION.Nodes.type], node_s->UNION.Nodes.nodeln);
     NodeMaster sublink = node_s->UNION.Nodes.nodes[1];
+    //printf("link data 1: %s\n", sublink.UNION.Node.stor);
     
     // this means that there is also a third node which
     NodeMaster subsublink = node_s->UNION.Nodes.nodes[2];
     
     if (subsublink.utype == NODE)
         {
-            ByteStream ministream = mbs_init();
-            Instruction literal = CONcreate_isn(_STRING_, (void *)subsublink.UNION.Node.stor);
-            astream(&ministream, literal);
-            aastream(bs, ministream);
+            printf("link data 2: %s\n", subsublink.UNION.Node.stor);
+            //ByteStream ministream = mbs_init();
+            ByteStream ministream;
+            create_ibs(&ministream);
             
-            mbs_reset(&ministream);
+            Instruction literal = CONcreate_isn(_STRING_, (void *)subsublink.UNION.Node.stor);
+            ai_stream(&ministream, literal);
+            am_stream(bs, ministream);
+            
+            reset_ibs(&ministream);
+            
             Instruction push = CMDcreate_isn(_PUSH, "");
-            astream(&ministream, push);
-            aastream(bs, ministream);
+            ai_stream(&ministream, push);
+            am_stream(bs, ministream);
             
             (*linker_cnt)++;
         }
     else
         {
             // it could be a function or something
-            
             if (subsublink.UNION.Nodes.type == FUNCTION_CALL)
                 {
+                    debugp("Found FUNCTION_CALL");
                     // we append it to general memory so that when we return 
                     // out of this recursive function, we can run a CALL command
                     agem(FUNCTION_CALL, gem);
@@ -841,7 +317,6 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
                     // so that we can properly process the function and convert
                     // it into bytecode
                     agenm(subsublink, genm);
-                    
                     // ============= THIS IS ASSUMING ITS A FUNCTION CALL =============
                     // we still go through to get the name of the function
                     // so that it can be loaded from the hashmap using 
@@ -855,19 +330,26 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
     
     if (sublink.utype == NODES)
         {
+            printf("sublink type: %s\n", type_names[sublink.UNION.Nodes.type]);
             bytecode_IDlinker(&sublink, bs, gem, genm, linker_cnt);
         }
     else
-        {   ByteStream ministream = mbs_init();
+        {   
+            printf("link data 1: %s\n", sublink.UNION.Node.stor);
+            
+            //ByteStream ministream = mbs_init();
+            ByteStream ministream;
+            create_ibs(&ministream);
             // this means that there is also a third node which
             Instruction _literal = CONcreate_isn(_STRING_, (void *)sublink.UNION.Node.stor);
-            astream(&ministream, _literal);
-            aastream(bs, ministream);
+            ai_stream(&ministream, _literal);
+            am_stream(bs, ministream);
             
-            mbs_reset(&ministream);
+            reset_ibs(&ministream);
+            
             Instruction push = CMDcreate_isn(_PUSH, "");
-            astream(&ministream, push);
-            aastream(bs, ministream);
+            ai_stream(&ministream, push);
+            am_stream(bs, ministream);
             
             (*linker_cnt)++;
         }
@@ -915,9 +397,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
     
     //ByteStream value = mbs_init();
     ByteStream value;
-    value.bstream = NULL;
-    value.streamln = 0;
-    value.streamsz = 0;
+    create_mbs(&value);
     if (value_n.utype == NODES)
         {
             // ===============================================================
@@ -934,7 +414,8 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             // VALUE, LIKE [name = "john"] OR [number = 10.5]
             // ===============================================================
             
-            ByteStream ministream = mbs_init();
+            ByteStream ministream;
+            create_ibs(&ministream);
             // Casted convert(char *string, enum _DATATYPE_ type)
             char *value_s = value_n.UNION.Node.stor;
             Casted implicit_cast = convert(value_s, type(value_s));
@@ -953,24 +434,22 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         break;
                 }
             // append the literal to the stream
-            astream(&ministream, literal);
-            aastream(&value, ministream);
+            ai_stream(&ministream, literal);
+            am_stream(&value, ministream);
             
             // append the PUSH command to put the literal onto the stack
-            mbs_reset(&ministream);
+            reset_ibs(&ministream);
             Instruction push = CMDcreate_isn(_PUSH, "");
             
             // append the push command to the stream
-            astream(&ministream, push);
-            aastream(&value, ministream);  
+            ai_stream(&ministream, push);
+            am_stream(&value, ministream); 
         }
         
     // we do this one afterwards so that, in bytecode,
     // we 'STO' the value after evaluating the value
     ByteStream assig;
-    assig.bstream = NULL;
-    assig.streamln = 0;
-    assig.streamsz = 0;
+    create_mbs(&assig);
     if (assig_n.utype == NODES)
         {
             // ===============================================================
@@ -989,7 +468,8 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         // we then want to sequentially load in those keys into the
                         // respective hashmaps
                         
-                        ByteStream ministream = mbs_init();
+                        ByteStream ministream;
+                        create_ibs(&ministream);
                         
                         
                         // thank you stackoverflow
@@ -997,9 +477,9 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         sprintf(seq, "%d", links);
                         
                         Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
-                        astream(&ministream, loadseq);
+                        ai_stream(&ministream, loadseq);
                         
-                        aastream(&assig, ministream);
+                        am_stream(&assig, ministream);
                         
                         // WE DONT CHECK FOR FUNCTION CALLS HERE
                         // it is illegal to say:
@@ -1019,18 +499,20 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             // THIS IS IF THE VALUE ON THE LEFT IN JUST A SINGLE VARIABLE LIKE
             // [name = "john"] OR [number = 10.5], NOT A LINKER
             // ===============================================================
-            ByteStream ministream = mbs_init();
+            //ByteStream ministream = mbs_init();
+            ByteStream ministream;
+            create_ibs(&ministream);
             
             char *var = assig_n.UNION.Node.stor;
             Instruction variable = CMDcreate_isn(_STO, var);
             
             // append the literal to the stream
-            astream(&ministream, variable);
-            aastream(bs, ministream);
+            ai_stream(&ministream, variable);
+            am_stream(bs, ministream);
         }
         
-    aastream(bs, value);
-    aastream(bs, assig);
+    am_stream(bs, value);
+    am_stream(bs, assig);
 }
 
 /* this is just for reference
@@ -1073,7 +555,7 @@ void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm
                         
                         
                         // we will ASSUME A FUNCTION CALL
-                        bytecode_IDlinker_func(&node_s, bs, gem, genm);
+                        bytecode_IDlinker_func(&node_s.UNION.Nodes.nodes[0], bs, gem, genm);
                         break;
                     default:
                         debugp("Hit a default");
@@ -1082,7 +564,7 @@ void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm
         }
 }
 
-void bsprint(ByteStream isn)
+/*void bsprint(ByteStream isn)
 {
     Instruction *st = isn.stream;
     for (int i = 0; i < isn.streamln; ++i)
@@ -1104,7 +586,7 @@ void bsprint(ByteStream isn)
                     /*else if (st[i].data.mem.memt == KEYLIST)
                         {
                             printf("-%d, ", st[i].data.mem.loc.keylistid);
-                        }*/
+                        }
                     else if (st[i].data.mem.memt == HASH)
                         {
                             //printf("%s: %s ", mem_types[st[i].data.mem.memt],  st[i].data.mem.loc.key);
@@ -1123,6 +605,45 @@ void bsprint(ByteStream isn)
              
         }
     printf("\n");
+}*/
+
+void print_bs(ByteStream *bs)
+{
+    if (bs->is_master) 
+        { 
+            for (int i = 0; i < bs->UNION.ms.streamln; ++i)
+                {
+                    print_bs(&bs->UNION.ms.stream[i]); 
+                }
+        }
+    else
+        {
+            for (int i = 0; i < bs->UNION.is.streamln; ++i)
+                {
+                    Instruction isn = bs->UNION.is.stream[i];
+                    
+                     if (isn.isnt == __CMD)
+                         {
+                             enum _COMMAND_ cmd = isn.data.cmd.cmdt;
+                             printf("%s %s", cmdt_types[cmd], isn.data.cmd.val);
+                            
+                             if (cmd == _PUSH) printf("\n");
+                         }
+                     else if (isn.isnt == __MEM)
+                         {
+                             
+                         }
+                     else 
+                         {
+                             void *p = isn.data.con.val;
+                             if (isn.data.con.datat == _INT_) printf("%d ", (*(int *)p)); 
+                             else if (isn.data.con.datat == _STRING_) printf("%s ", (char *)p);
+                             if (isn.data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
+                             printf("%s, ", data_types[isn.data.con.datat]);
+                         } 
+                     printf("\n"); 
+                }
+        }
 }
 
 ByteStream compile(NodeMaster *stack)
@@ -1143,9 +664,7 @@ ByteStream compile(NodeMaster *stack)
     genm.UNION.Nodes.nodeln = 0;
     
     ByteStream bs;
-    bs.bstream = NULL;
-    bs.streamln = 0;
-    bs.streamsz = 0;
+    create_mbs(&bs);
     /*for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
             enum _TYPE_ ptype = stack->UNION.Nodes.type;
@@ -1156,8 +675,11 @@ ByteStream compile(NodeMaster *stack)
     
     traverse3(stack, &bs, &gem, &genm);
     
-    printf("%d BYTECODE:\n", bs.streamln);
-    for (int i = 0; i < bs.streamln; ++i)
+    printf("\n\n");
+    
+    printf("%d BYTECODE:\n", bs.UNION.ms.streamln);
+    print_bs(&bs);
+    /*for (int i = 0; i < bs.streamln; ++i)
         {   
             for (int j = 0; j < bs.bstream[i].streamln; ++j)
                 {
@@ -1188,7 +710,7 @@ ByteStream compile(NodeMaster *stack)
                 }
             //printf("%s\n", cmdt_names[cmds[i].cmdt]);
             printf("\n");*/
-        }
+        //}
         
     return bs;
 }

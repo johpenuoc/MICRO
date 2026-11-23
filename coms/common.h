@@ -157,13 +157,23 @@ typedef struct
 
 typedef struct __TAG
 {
-    // this one is only for the main stream. 
-    // its only a '2d array'
-    struct __TAG *bstream;
-    
-    Instruction *stream;
-    int streamln;
-    size_t streamsz;
+    bool is_master;
+    union
+        {
+            struct
+                {
+                    struct __TAG *stream;
+                    int streamln;
+                    size_t streamsz;
+                } ms;
+                
+            struct
+                {
+                    Instruction *stream;
+                    int streamln;
+                    size_t streamsz;
+                } is;
+        } UNION;
     
 } ByteStream;
 

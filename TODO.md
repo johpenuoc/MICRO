@@ -571,3 +571,12 @@ CALL move
 LOAD_SEQ will be loading a hashmap stored at box, whereby the key 'move' exists somewhere in there. At that point, the VM will implicitly understand that the previous searches through the hashmap relate to the current function CALL, and will look there first before looking at the general hashmap.
 
 I'm a little tired, so ima go on a walk, buy an energy drink, and let my mind rest. I could've done with more sleep...
+
+### 15:54
+I'm back. I ate a snickers, drank some cherry redbell, and walked a fair little bit. Time to lock in.
+
+### 17:17
+Okidokie, I believe that it logically works, but I've messed up the bstream vs stream stuff. I've got to redo the fundamental ByteStream struct to fix this...
+
+### 17:46
+It works! I had to re-create the ByteSrream struct, but now it's working! TIME TO EAT!! 
