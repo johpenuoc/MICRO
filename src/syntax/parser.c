@@ -820,13 +820,12 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
     Token token = tokens[*token_cnt];
     Token next_token = tokens[(*token_cnt) + 1];
     
+    amem(mem, memsz, tokens, token_cnt);
     while (true)
         {   
             // checking if any are terminal
             const enum _TYPE_ TOKEN_TYPE = token.type;
             const enum _TYPE_ NEXT_TOKEN_TYPE = next_token.type;
-            
-            amem(mem, memsz, tokens, token_cnt);
             
             switch (TOKEN_TYPE)
             {
@@ -919,10 +918,14 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                             NodeMaster mmstack = parse_IDlinker(tokens, token_cnt, mem, memsz);
                         
                             // append it to the stack       
-                            mstacksz += sizeof(mmstack);
+                            /*mstacksz += sizeof(mmstack);
                             mstack.UNION.Nodes.nodes = realloc(mstack.UNION.Nodes.nodes, mstacksz);
                             mstack.UNION.Nodes.nodes[mstack.UNION.Nodes.nodeln] = mmstack;
-                            mstack.UNION.Nodes.nodeln++;
+                            mstack.UNION.Nodes.nodeln++;*/
+                            
+                            (*token_cnt)--;
+                            
+                            umem(mem, mmstack, memsz);
                         }
                     else if (NEXT_TOKEN_TYPE == ADD || NEXT_TOKEN_TYPE == SUB || NEXT_TOKEN_TYPE == STAR || NEXT_TOKEN_TYPE == DIV)
                         {
@@ -978,11 +981,15 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                 case EQUAL:
                     // prase_expr
                     break;
+                default:
+                     (*token_cnt)++;
+                     amem(mem, memsz, tokens, token_cnt);
+                     break;
             }
         
-        //amem(mem, memsz, tokens, token_cnt);
+        /*//amem(mem, memsz, tokens, token_cnt);
         (*token_cnt)++;
-        
+        */
         token = tokens[*token_cnt];
         next_token = tokens[(*token_cnt) + 1];
         }
@@ -1222,6 +1229,10 @@ NodeMaster stack(List *tokens)
     mem.UNION.Nodes.nodes = NULL;
     mem.UNION.Nodes.nodeln = 0;
     
+    bool memupdated = false;
+    
+    //amem(&mem, &memsz, _tokens, ptoken_cnt);
+    amem(&mem, &memsz, _tokens, ptoken_cnt);
     while (token_cnt < tokens->length - 2)
         {
             Token token = _tokens[token_cnt];
@@ -1233,8 +1244,10 @@ NodeMaster stack(List *tokens)
             
             // always update memory with each token
             //    we first create a Node for the current token
-            amem(&mem, &memsz, _tokens, ptoken_cnt);
+            //if (!memupdated) amem(&mem, &memsz, _tokens, ptoken_cnt);
+            //else memupdated = false;
             
+            printf("going in token: %s\n", type_names[_tokens[token_cnt].type]);
             switch (TOKEN_TYPE)
             {
                 case IDENTIFIER:
@@ -1272,10 +1285,16 @@ NodeMaster stack(List *tokens)
                             NodeMaster mstack = parse_IDlinker(_tokens, ptoken_cnt, &mem, &memsz);
                         
                             // append it to the stack       
-                            stacksz += sizeof(mstack);
+                            /*stacksz += sizeof(mstack);
                             _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
                             _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
-                            _stack.UNION.Nodes.nodeln++;
+                            _stack.UNION.Nodes.nodeln++;*/
+                            
+                            umem(&mem, mstack, &memsz);
+                            token_cnt--;
+                            //memupdated = true;
+                            
+                            printf("exiting token: %s\n", type_names[_tokens[token_cnt].type]);
                         }
                     else if (NEXT_TOKEN_TYPE == ADD || NEXT_TOKEN_TYPE == SUB || NEXT_TOKEN_TYPE == STAR || NEXT_TOKEN_TYPE == DIV)
                         {                        
@@ -1351,11 +1370,19 @@ NodeMaster stack(List *tokens)
                     break;
                     
                 case EQUAL:
-                    // prase_expr
+                    {
+                        NodeMaster mstack = parse_assignment(_tokens, ptoken_cnt, &mem, &memsz);
+                        // append it to the stack   
+                        stacksz += sizeof(mstack);
+                        _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
+                        _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
+                        _stack.UNION.Nodes.nodeln++; 
+                    }
                     break;
                     
                 default:
                     token_cnt++;
+                    amem(&mem, &memsz, _tokens, ptoken_cnt);
                     break;
             }
         }

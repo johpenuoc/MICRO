@@ -1,3 +1,6 @@
 a = 3;
 
-player.box.move(x)
+fn function()
+{
+     player.box.x = 6;   
+}

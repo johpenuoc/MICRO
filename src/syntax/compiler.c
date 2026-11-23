@@ -651,15 +651,15 @@ void traverse2(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
         }
 }
 
-void bytecode_assignment(&node_s, bs, gem)
+void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem)
 {
     // this loops through all of the nodes in an
     // ASSIGNMENT mstack
     for (int i = 0; i < node_s->UNION.Nodes.nodeln; ++i)
         {
-            NodeMaster node = node_s->UNION.Nodes[i];
+            NodeMaster node = node_s->UNION.Nodes.nodes[i];
              
-            // i will continue this later   
+            
         }
 }
 
@@ -667,7 +667,7 @@ void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem)
 {
     for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
-            NodeMaster node_s = stack->UNION.Nodes[i];
+            NodeMaster node_s = stack->UNION.Nodes.nodes[i];
             // this function ONLY loops through NODES, not NODE's
             enum _TYPE_ stack_type = node_s.UNION.Nodes.type;
             
