@@ -597,12 +597,12 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         
                         break;
                     case LIST_ACC:
-                        int accesses = 0;
-                        bytecode_listacc(&assig_n, bs, gem, genm, &accesses);
+                        //int accesses = 0;
+                        bytecode_listacc(&assig_n, bs, gem, genm, &sto_data);
                         //bytecode_args(&assig_n.UNION.Nodes.nodes[1], bs, gem, genm);
                         
-                        char *seq = malloc(sizeof(char)*(int)log10(accesses));
-                        sprintf(seq, "%d", accesses);
+                        char *seq = malloc(sizeof(char)*(int)log10(sto_data));
+                        sprintf(seq, "%d", sto_data);
                         
                         Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
                         ai_stream(bs, loadseq);
@@ -613,6 +613,21 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         char *_var = "__CONSUME__";
                         Instruction _variable = CMDcreate_isn(sto_type, _var);
                         ai_stream(bs, _variable);
+                        
+                        switch (sto_type)
+                            {
+                                case _STO:
+                                    break;
+                                case _STO_SEQ:
+                                    // _PROVIDE simply 'provides' the previous command
+                                    // with some data.
+                                    // i know... it's a very messy work-around
+                                    char *_cseq = malloc(sizeof(char)*(int)log10(sto_data));
+                                    sprintf(_cseq, "%d", sto_data);
+                                    Instruction seq = CMDcreate_isn(_PROVIDE, _cseq);
+                                    ai_stream(bs, seq);
+                                    break;
+                            }
                         break;
                     default:
                         perror("No NODE type exists");

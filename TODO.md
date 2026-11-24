@@ -750,3 +750,13 @@ list = [...]
 Pretty cool mannnn.
 
 Time to develop list-index-accessing.
+
+### 18:53
+I am back and continuing work.
+
+At the moment, the lists work, however they do not work when assining an index of a list to another list. 
+
+Going to fix this bug.
+
+### 19:08
+Okidokie. I believe I've gotten it working!
