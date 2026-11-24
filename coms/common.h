@@ -24,17 +24,15 @@ enum _COMMAND_
 {
     _ADD, _SUB, _MUL, _DIV,
     
-    _PUSH, _CALL, _STO, _ID,
+    _PUSH, _CALL, 
     
-    _LITERAL, _ID_PUSH, _LOAD,
+    _STO, _STO_SEQ, _PROVIDE,
     
-    _SET, _PUSH_KEYL, _HASH_SEQ, _END_HASH_SEQ,
+    _LOAD, _LOAD_SEQ,
     
-    _HASH, _LOAD_SEQ, _STO_SEQ, _PROVIDE,
+    _SCOPE_START, _SCOPE_END,   
     
-    _SCOPE_START, _SCOPE_END,
-    
-    SPLIT
+    _INVERSE, 
 };
 
 

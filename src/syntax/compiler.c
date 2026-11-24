@@ -17,6 +17,8 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
 void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
 void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
 void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *linker_cnt);
+void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
+void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
 
 Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val)
 {
@@ -622,9 +624,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         
                         break;
                     case LIST_ACC:
-                        //int accesses = 0;
                         bytecode_listacc(&assig_n, bs, gem, genm, &sto_data);
-                        //bytecode_args(&assig_n.UNION.Nodes.nodes[1], bs, gem, genm);
                         
                         char *seq = malloc(sizeof(char)*(int)log10(sto_data));
                         sprintf(seq, "%d", sto_data);
@@ -716,7 +716,62 @@ STACK: [PROGRAM]
                                 NODE: [NUMBER]------->[6]
 */
 
-void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
+void bytecode_not(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
+{
+    // we evaluate the condition inside of the NOT
+    NodeMaster *node_s = (stack->utype == NODES) ? stack->UNION.Nodes.nodes : stack;
+    bytecode_condition(node_s, bs, gem, genm);
+    
+    // we inverse whatever was calculated before it
+    Instruction inverse = CMDcreate_isn(_INVERSE, "");
+    ai_stream(bs, inverse);
+}
+
+void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
+{
+    // we need to evaluate the condition from the inside
+    // out, starting with the most inner parts first.
+    // we will achieve this with recursion, as usual 
+    
+    NodeMaster node = stack->UNION.Nodes.nodes[0];
+    
+    enum _TYPE_ node_type = (node.utype == NODES) ? node.UNION.Nodes.type : node.UNION.Node.type; 
+    switch (node_type)
+        {
+            case NOT:
+                // if its a NOT then we know for a fact that it has
+                // child nodes, so we can safely use Nodes.nodes...
+                bytecode_not(node.UNION.Nodes.nodes, bs, gem, genm);
+                break;
+            case EXPRESSION:
+                break;
+            case OPERATION:
+                break;
+        }
+}
+
+void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
+{
+    // a condition always has two EXPRESSION child nodes,
+    // so we'll just skip over the first one to reach the
+    // general outside condition
+    //Instruction jump_cmd_condition;
+ 
+    NodeMaster condition_nodes = stack->UNION.Nodes.nodes[0];   
+    bytecode_condition(&condition_nodes, bs, gen, genm);//, &jump_cmd_condition);
+    // if the condition is true, we jump to the next line,
+    // allowing us to evaluate the if-statement scope
+    // if false, we jump past it. if theres an else if or
+    // just an else, we jump to that evaulation
+     
+    NodeMaster scope_nodes = stack->UNION.Nodes.nodes[1];
+    
+    // after evaluating the if-scope, we take its total length
+    // and then use that to inform the jump_cmd_condition how
+    // far to jump ahead if the condition is evaluated as false
+}
+
+void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
 {
     Instruction scope_start = CMDcreate_isn(_SCOPE_START, "");
     Instruction scope_end = CMDcreate_isn(_SCOPE_END, "");
@@ -749,54 +804,16 @@ void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm
                         bytecode_func(&node_s, bs, gem, genm);
                         break;
                     case SCOPE:                       
-                        traverse3(node_s.UNION.Nodes.nodes, bs,  gem, genm);
+                        traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm);
                         break;
                     default:
-                        debugp("Hit a default");
+                        perror("Hit a default. Line 754 at the time of 24/11.");
+                        exit(EXIT_FAILURE);
                         break;
                 }
         }
     ai_stream(bs, scope_end);
 }
-
-/*void print_bs(ByteStream *bs)
-{
-    if (bs->is_master) 
-        { 
-            for (int i = 0; i < bs->UNION.ms.streamln; ++i)
-                {
-                    print_bs(&bs->UNION.ms.stream[i]); 
-                }
-        }
-    else
-        {
-            for (int i = 0; i < bs->UNION.is.streamln; ++i)
-                {
-                    Instruction isn = bs->UNION.is.stream[i];
-                    
-                     if (isn.isnt == __CMD)
-                         {
-                             enum _COMMAND_ cmd = isn.data.cmd.cmdt;
-                             printf("%s %s", cmdt_types[cmd], isn.data.cmd.val);
-                            
-                             if (cmd == _PUSH || cmd == _LOAD_SEQ) printf("\n");
-                         }
-                     else if (isn.isnt == __MEM)
-                         {
-                             
-                         }
-                     else 
-                         {
-                             void *p = isn.data.con.val;
-                             if (isn.data.con.datat == _INT_) printf("%d ", (*(int *)p)); 
-                             else if (isn.data.con.datat == _STRING_) printf("%s ", (char *)p);
-                             if (isn.data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
-                             printf("%s, ", data_types[isn.data.con.datat]);
-                         } 
-                     printf("\n"); 
-                }
-        }
-}*/
 
 ByteStream compile(NodeMaster *stack)
 {
@@ -815,11 +832,9 @@ ByteStream compile(NodeMaster *stack)
     bs.stream = NULL;
     bs.streamln = 0;
     bs.streamsz = 0;
-    traverse3(stack, &bs, &gem, &genm);
+    traverse(stack, &bs, &gem, &genm);
     
     printf("\n\n");
-    
-    //print_bs(&bs);
     
     for (int i = 0; i < bs.streamln; ++i)
         {
@@ -830,9 +845,10 @@ ByteStream compile(NodeMaster *stack)
                      enum _COMMAND_ cmd = isn.data.cmd.cmdt;
                      printf("%s", cmdt_types[cmd]);
                      if (isn.data.cmd.val != "") printf(" %s, ", isn.data.cmd.val);
+                     else printf("\n");
                      
-                     if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf(",\n");
-                     else if (cmd == _SCOPE_START || cmd == _SCOPE_END) printf("\n\n");
+                     if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf("\n");
+                     //else if (cmd == _SCOPE_START || cmd == _SCOPE_END) printf("\n");
                  }
              else if (isn.isnt == __MEM)
                  {

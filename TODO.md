@@ -774,31 +774,184 @@ myfunction("something", idsomething, list[7, 2]);
 It generates:
 SCOPE_START
 
-"something" STRING, PUSH,
-LOAD idsomething, PUSH,
-7 INT, PUSH,
-2 INT, PUSH,
-list STRING, PUSH,
-LOAD_SEQ 3, PUSH,
-LOAD myfunction, PUSH,
-CALL,
+
+"something" STRING, PUSH
+
+LOAD idsomething, PUSH
+
+7 INT, PUSH
+
+2 INT, PUSH
+
+list STRING, PUSH
+
+LOAD_SEQ 3, PUSH
+
+LOAD myfunction, PUSH
+
+CALL
+
 SCOPE_START
 
-centre STRING, PUSH,
-world STRING, PUSH,
-LOAD_SEQ 2, PUSH,
-CALL,
-0.400000 FLOAT, PUSH,
-"true" STRING, PUSH,
-move STRING, PUSH,
-box STRING, PUSH,
-player STRING, PUSH,
-LOAD_SEQ 3, PUSH,
-CALL,
+
+centre STRING, PUSH
+
+world STRING, PUSH
+
+LOAD_SEQ 2, PUSH
+
+CALL
+
+0.400000 FLOAT, PUSH
+
+"true" STRING, PUSH
+
+move STRING, PUSH
+
+box STRING, PUSH
+
+player STRING, PUSH
+
+LOAD_SEQ 3, PUSH
+
+CALL
+
 STO a, SCOPE_END
+
 
 SCOPE_END
 
 Pretty cool!!
-
 Logging off for tonight.
+
+### 21:15
+I'll be actually logging off soon, but I just wanted to read through some code and hypothesize some things. I'm not really adding to the codebase that much, if anything.
+
+Just to outline the full processing:
+
+Tokenization:
+[IDENTIFIER]     myfunction
+[LPAREN]         (
+[STRING]         "something"
+[COMMA]          ,
+[IDENTIFIER]     idsomething
+[COMMA]          ,
+[IDENTIFIER]     list
+[LBRACKET]       [
+[NUMBER]         7
+[COMMA]          ,
+[NUMBER]         2
+[RBRACKET]       ]
+[RPAREN]         )
+[SCOLON]         ;
+[LBRACE]         {
+[IDENTIFIER]     a
+[EQUAL]          =
+[IDENTIFIER]     player
+[DECIMAL]        .
+[IDENTIFIER]     box
+[DECIMAL]        .
+[IDENTIFIER]     move
+[LPAREN]         (
+[IDENTIFIER]     world
+[DECIMAL]        .
+[IDENTIFIER]     centre
+[COMMA]          ,
+[NUMBER]         0.4
+[COMMA]          ,
+[STRING]         "true"
+[RPAREN]         )
+[SCOLON]         ;
+[RBRACE]         }
+
+STACK: [PROGRAM]
+        STACK: [FUNCTION_CALL]
+                NODE: [IDENTIFIER]--->[myfunction]
+                STACK: [ARGUMENTS]
+                        STACK: [EXPRESSION]
+                                NODE: [STRING]------->["something"]
+                        STACK: [EXPRESSION]
+                                NODE: [IDENTIFIER]--->[idsomething]
+                        STACK: [EXPRESSION]
+                                STACK: [LIST_ACC]
+                                        NODE: [IDENTIFIER]--->[list]
+                                        STACK: [LIST]
+                                                STACK: [EXPRESSION]
+                                                        NODE: [NUMBER]------->[7]
+                                                STACK: [EXPRESSION]
+                                                        NODE: [NUMBER]------->[2]
+        STACK: [SCOPE]
+                STACK: [SCOPE]
+                        STACK: [ASSIGNMENT]
+                                NODE: [EQUAL]-------->[=]
+                                NODE: [IDENTIFIER]--->[a]
+                                STACK: [EXPRESSION]
+                                        STACK: [ID_LINKER]
+                                                STACK: [ID_LINKER]
+                                                        NODE: [DECIMAL]------>[.]
+                                                        STACK: [ID_LINKER]
+                                                                NODE: [DECIMAL]------>[.]
+                                                                NODE: [IDENTIFIER]--->[player]
+                                                                NODE: [IDENTIFIER]--->[box]      
+                                                        STACK: [FUNCTION_CALL]
+                                                                NODE: [IDENTIFIER]--->[move]
+                                                                STACK: [ARGUMENTS]
+                                                                        STACK: [EXPRESSION]      
+                                                                                STACK: [ID_LINKER]
+                                                                                        STACK: [ID_LINKER]
+                                                                                                NODE: [DECIMAL]------>[.]
+                                                                                                NODE: [IDENTIFIER]--->[world]
+                                                                                                NODE: [IDENTIFIER]--->[centre]
+                                                                        STACK: [EXPRESSION]      
+                                                                                NODE: [NUMBER]------->[0.4]
+                                                                        STACK: [EXPRESSION]      
+                                                                                NODE: [STRING]------->["true"]
+                                                                                
+SCOPE_START
+"something" STRING, PUSH
+
+LOAD idsomething, PUSH
+
+7 INT, PUSH
+
+2 INT, PUSH
+
+list STRING, PUSH
+
+LOAD_SEQ 3, PUSH
+
+LOAD myfunction, PUSH
+
+CALL
+
+SCOPE_START
+centre STRING, PUSH
+
+world STRING, PUSH
+
+LOAD_SEQ 2, PUSH
+
+CALL
+
+0.400000 FLOAT, PUSH
+
+"true" STRING, PUSH
+
+move STRING, PUSH
+
+box STRING, PUSH
+
+player STRING, PUSH
+
+LOAD_SEQ 3, PUSH
+
+CALL
+
+STO a, SCOPE_END
+SCOPE_END
+
+On github, it won't format so well. But the data and information is, indeed, present.
+
+How should an if-statement be represented in bytecode..? I think I will have to introduce a new command: JUMP, but specifically whether a certain condition is true or not. This will also allow us to tackle loops, which will be the first order of things.
+
+Did a little more than I meant... going to bed now, for real.

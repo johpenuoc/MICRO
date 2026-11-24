@@ -21,32 +21,28 @@ enum _COMMAND_
 {
     _ADD, _SUB, _MUL, _DIV,
     
-    _PUSH, _CALL, _STO, _ID,
+    _PUSH, _CALL, 
     
-    _LITERAL, _ID_PUSH, _LOAD,
+    _STO, _STO_SEQ, _PROVIDE,
     
-    _SET, _PUSH_KEYL, _HASH_SEQ, _END_HASH_SEQ,
-    
-    _HASH, _LOAD_SEQ, _STO_SEQ, _PROVIDE,
+    _LOAD, _LOAD_SEQ,
     
     _SCOPE_START, _SCOPE_END,
     
-    SPLIT
+    _INVERSE,  
 };
 const char *cmdt_types[] = {
     "ADD", "SUB", "MUL", "DIV",
     
-    "PUSH", "CALL", "STO", "ID",
+    "PUSH", "CALL", 
     
-    "LITERAL", "ID_PUSH", "LOAD",
+    "STO", "STO_SEQ", "PROVIDE",
     
-    "SET", "PUSH_KEYL", "HASH_SEQ", "_END_HASH_SEQ",
+    "LOAD", "LOAD_SEQ",
     
-    "HASH", "LOAD_SEQ", "STO_SEQ", "PROVIDE",
+    "SCOPE_START", "SCOPE_END",
     
-    "_SCOPE_START", "_SCOPE_END",
-    
-    "SPLIT"
+    "INVERSE",
 };
 
 

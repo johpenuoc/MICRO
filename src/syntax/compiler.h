@@ -19,7 +19,10 @@ void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
 void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
 void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *linker_cnt);
 void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
+void bytecode_not(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
+void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);//, Instruction *jumpcmd);
+void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
+void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
 
 ByteStream compile(NodeMaster *stack);
 
