@@ -234,6 +234,31 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
                                 Instruction call = CMDcreate_isn(_CALL, "");
                                 ai_stream(bs, call);
                                 break;
+                            case LIST_ACC:
+                                int counter = 0;
+                                bytecode_listacc(&subnode, bs, gem, genm, &counter);
+
+                                char *__seq = malloc(sizeof(char)*(int)log10(counter));
+                                sprintf(__seq, "%d", counter);
+                                Instruction __loadseq = CMDcreate_isn(_LOAD_SEQ, __seq);
+                                ai_stream(bs, __loadseq);
+
+                                Instruction __push = CMDcreate_isn(_PUSH, "");
+                                ai_stream(bs, __push);
+                                
+                                break;
+                            case LIST:
+                                bytecode_args(&subnode, bs, gem, genm);
+                                
+                                char *_seq = malloc(sizeof(char)*(int)log10(subnode.UNION.Nodes.nodeln));
+                                sprintf(_seq, "%d", subnode.UNION.Nodes.nodeln);
+                                Instruction _loadseq = CMDcreate_isn(_LOAD_SEQ, _seq);
+                                ai_stream(bs, _loadseq);
+                                
+                                Instruction _push = CMDcreate_isn(_PUSH, "");
+                                ai_stream(bs, _push);
+                                
+                                break;
                         }
                 }
             else
@@ -693,6 +718,10 @@ STACK: [PROGRAM]
 
 void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
 {
+    Instruction scope_start = CMDcreate_isn(_SCOPE_START, "");
+    Instruction scope_end = CMDcreate_isn(_SCOPE_END, "");
+    
+    ai_stream(bs, scope_start);
     for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
             NodeMaster node_s = stack->UNION.Nodes.nodes[i];
@@ -719,11 +748,15 @@ void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm
                     case FUNCTION_CALL:
                         bytecode_func(&node_s, bs, gem, genm);
                         break;
+                    case SCOPE:                       
+                        traverse3(node_s.UNION.Nodes.nodes, bs,  gem, genm);
+                        break;
                     default:
                         debugp("Hit a default");
                         break;
                 }
         }
+    ai_stream(bs, scope_end);
 }
 
 /*void print_bs(ByteStream *bs)
@@ -795,9 +828,11 @@ ByteStream compile(NodeMaster *stack)
              if (isn.isnt == __CMD)
                  {
                      enum _COMMAND_ cmd = isn.data.cmd.cmdt;
-                     printf("%s %s", cmdt_types[cmd], isn.data.cmd.val);
-                    
-                     if (cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) printf("\n");
+                     printf("%s", cmdt_types[cmd]);
+                     if (isn.data.cmd.val != "") printf(" %s, ", isn.data.cmd.val);
+                     
+                     if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf(",\n");
+                     else if (cmd == _SCOPE_START || cmd == _SCOPE_END) printf("\n\n");
                  }
              else if (isn.isnt == __MEM)
                  {
@@ -811,7 +846,7 @@ ByteStream compile(NodeMaster *stack)
                      if (isn.data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
                      printf("%s, ", data_types[isn.data.con.datat]);
                  } 
-             printf("\n"); 
+             //printf("\n"); 
         }
         
     return bs;

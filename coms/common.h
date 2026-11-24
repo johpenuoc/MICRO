@@ -32,6 +32,8 @@ enum _COMMAND_
     
     _HASH, _LOAD_SEQ, _STO_SEQ, _PROVIDE,
     
+    _SCOPE_START, _SCOPE_END,
+    
     SPLIT
 };
 

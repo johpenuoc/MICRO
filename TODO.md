@@ -760,3 +760,45 @@ Going to fix this bug.
 
 ### 19:08
 Okidokie. I believe I've gotten it working!
+
+### 19:56
+It appears that I've gotten it to a very good start! Scopes now work, you can call functions, have arguments, use lists, indexes to lists, linkers, assignments, and all of that! Next will be if statements, for loops, defining functions, defining classes, calling classes, and some other things!
+
+Taking the source code:
+myfunction("something", idsomething, list[7, 2]);
+
+{
+    a = player.box.move(world.centre, 0.4, "true");
+}
+
+It generates:
+SCOPE_START
+
+"something" STRING, PUSH,
+LOAD idsomething, PUSH,
+7 INT, PUSH,
+2 INT, PUSH,
+list STRING, PUSH,
+LOAD_SEQ 3, PUSH,
+LOAD myfunction, PUSH,
+CALL,
+SCOPE_START
+
+centre STRING, PUSH,
+world STRING, PUSH,
+LOAD_SEQ 2, PUSH,
+CALL,
+0.400000 FLOAT, PUSH,
+"true" STRING, PUSH,
+move STRING, PUSH,
+box STRING, PUSH,
+player STRING, PUSH,
+LOAD_SEQ 3, PUSH,
+CALL,
+STO a, SCOPE_END
+
+SCOPE_END
+
+Pretty cool!!
+
+Logging off for tonight.
