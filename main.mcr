@@ -1,1 +1,1 @@
-player.box.move();
+player.box.move(somearg);

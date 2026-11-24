@@ -580,3 +580,54 @@ Okidokie, I believe that it logically works, but I've messed up the bstream vs s
 
 ### 17:46
 It works! I had to re-create the ByteSrream struct, but now it's working! TIME TO EAT!! 
+
+## 24/11/26
+### 8:53
+I a got up a little later due to a workout last night at the GYM. Anyways, time to begin developing again.
+
+Currently, the way it loads something like player.box.move() is by loading each successive object onto the stack, and then loading in a hashtable with each respective object. It then calls the final function. Here's how 'player.box.move();' looks:
+
+box STRING,
+PUSH
+
+player STRING,
+PUSH
+
+LOAD_SEQ 2
+CALL move
+
+However, I'm unsure if this is correct. Because inside a hashtable, a function -- in my design -- will be nothing more than a bytecode address, which the VM will read and 'goto'. hen it will begin executing line-by-line until it finishes. It'll then return to the position it was originally in. 
+
+SO perhaps I want to include 'move' in the LOAD_SEQ? If it is a function, too, I can load in the arguments beforehand. LOAD_SEQ consums each of the PUHSes of each key, so then after calling the function, the top of the stack will contain the arguments.
+
+Gonna begin developing this.
+
+### 9:13
+I believe this has been implemented. Now, the function object at the end of something like player.box.move(), move is included in the LOAD_SEQ. Ontop of that, I have ordered the logic such that arguments will be loaded first, but I haven't actually reached that logic yet. I will begin implementing that now.
+
+### 9:34
+player.box.move(somearg, linkerarg.links, functionarg(), functionwithargs(arg1));
+
+temporary storage.
+
+### 9:45
+It now can handle simple identifier arguments. However, it does it in an order I didn't plan for; it now loads in the arguments AFTER LOAD_SEQ. Technically it should be fine, but I'm going to change it anyways. Here's what it looks like:
+
+move STRING,
+PUSH
+
+box STRING,
+PUSH
+
+player STRING,
+PUSH
+
+LOAD_SEQ 3
+
+LOAD somearg
+PUSH
+
+CALL move
+
+### 10:34
+Okidokie. I got it working. It loads the arguments before loading in the objects for hashing. AND I re-did the ByteStream struct again. It was getting a little confusing. Nonetheless, It's now been simplified and slightly optimised. Though, true optimisation will be happening when I completely rewrite the entire codebase. This is just to get something working. Performance is not something I care about right now, especially considering I don't know much about C and it's my second project.

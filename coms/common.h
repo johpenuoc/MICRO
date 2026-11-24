@@ -155,25 +155,11 @@ typedef struct
     
 } Instruction;
 
-typedef struct __TAG
+typedef struct
 {
-    bool is_master;
-    union
-        {
-            struct
-                {
-                    struct __TAG *stream;
-                    int streamln;
-                    size_t streamsz;
-                } ms;
-                
-            struct
-                {
-                    Instruction *stream;
-                    int streamln;
-                    size_t streamsz;
-                } is;
-        } UNION;
+    Instruction *stream;
+    int streamln;
+    size_t streamsz;
     
 } ByteStream;
 
