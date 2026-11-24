@@ -685,3 +685,18 @@ CALL
 Next will be to get the recursion really working; we will pass functions as arguments into other functions, which themselves may contain arguments which could be even more functions!
 
 Continuing development now.
+
+### 13:14
+The recursion is working. A function can take many arguments now. The only thing it can't take yet are lists and list-indexes, so either :1, 2, "name"...: and list:index:, but ill get to that now.
+
+### 13:35
+I have implemented a 'CONSUME' thingy. Basically, when said after a STO function, it basically takes the previous item in the same (hence consume) and uses that as what to assign to a variable.
+
+### 14:08
+I have updated the bytecode_assignments() too now. They work great! So functions, arguments in functions, linkers, assignments, literals, variables -- they are all able to be converted into bytecode nicely now. 
+
+The bytecode is a little lengthy, but I'm purposely using as little commands as I can.
+
+Next up for development: lists and list accessing.
+
+Continuing development.

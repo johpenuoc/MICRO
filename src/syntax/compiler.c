@@ -230,6 +230,9 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
                             case STRING:
                                 bytecode_literal(&subnode, bs, gem, genm);
                                 break;
+                            default:
+                                debugp("HERE??");
+                                break;
                         }
                 }
         }
@@ -253,26 +256,49 @@ void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
 
 void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
+    // ==========================================================
+    // THIS FUNCTION ACTS AS A WRAPPER FOR THE BYTECODE_IDLINKER
+    // BY CONTAINING THE LINKERS AND CONDITIONS ON WHETHER IT IS
+    // A FUNCTION CALL OR NOT
+    // ==========================================================
+    
     int links = 0;
     bytecode_IDlinker(node_s, bs, gem, genm, &links);
     
-    if (gem->types[gem->ln - 1] == FUNCTION_CALL)
+    bool non_regular = false;
+    if (gem->ln > 0)
         {
-            // this means that there was a function at the end
-            // of the linker, such as: player.box.move();
-            
+            if (gem->types[gem->ln - 1] == FUNCTION_CALL)
+                {
+                    // this means that there was a function at the end
+                    // of the linker, such as: player.box.move();
+                    
+                    char *seq = malloc(sizeof(char)*(int)log10(links));
+                    sprintf(seq, "%d", links);
+                    
+                    Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                    ai_stream(bs, loadseq);
+                    
+                    // after loading the hashmap keys, we push whats loaded onto the stack
+                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    ai_stream(bs, push);
+                    // we then call it because it is a function
+                    Instruction call = CMDcreate_isn(_CALL, "");
+                    ai_stream(bs, call);
+                    
+                    non_regular = true;
+                }
+        }
+    if (!non_regular)
+        {
             char *seq = malloc(sizeof(char)*(int)log10(links));
             sprintf(seq, "%d", links);
             
             Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
             ai_stream(bs, loadseq);
             
-            // after loading the hashmap keys, we push whats loaded onto the stack
             Instruction push = CMDcreate_isn(_PUSH, "");
             ai_stream(bs, push);
-            // we then call it because it is a function
-            Instruction call = CMDcreate_isn(_CALL, "");
-            ai_stream(bs, call);
         }
 }
 
@@ -358,6 +384,12 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
         }
 }
 
+void bytecode_CONTAINED_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
+{
+    int *links = 0;
+    
+}
+
 void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
     // this loops through all of the nodes in an
@@ -405,6 +437,45 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             // ===============================================================
             
             // THIS IS NEXT UP FOR DEVELOPMENT
+            for (int i = 0; i < value_n.UNION.Nodes.nodeln; ++i)
+                {
+                    NodeMaster subnode = value_n.UNION.Nodes.nodes[i];
+                
+                    if (subnode.utype == NODES)
+                        {
+                            // if this is the case, then the subnode will always be
+                            // an expression, so we skip it and go straight to the
+                            // very first index
+                            /*NodeMaster subsubnode = subnode.UNION.Nodes.nodes[0];
+                            enum _TYPE_ type;
+                            bool is_NODES = false;
+                            type = (subsubnode.utype == NODE) ? subsubnode.UNION.Node.type : subsubnode.UNION.Nodes.type;
+                            printf("type: %s\n", type_names[type]);*/
+                             
+                            switch (subnode.UNION.Nodes.type)
+                                {
+                                    case FUNCTION_CALL:
+                                        bytecode_func(&subnode, bs, gem, genm);
+                                        break;
+                                    case ID_LINKER:
+                                        // remember, that stupid, redundant ID_LINKER
+                                        // parent stack, so we use index 0 to bypass it
+                                        bytecode_IDlinker_func(&subnode.UNION.Nodes.nodes[0], bs, gem, genm);
+                                        break;
+                                }     
+                        }
+                    // i dont believe this is necessarily needed as whenever assigning
+                    // a value to a function, if it is not a stand-alone literal, it
+                    // will always be contained inside a NODES
+                    /*else
+                        {
+                            switch (subnode.UNION.Node.type)
+                                {
+                                    case :
+                                        break;
+                                }
+                        }*/
+                }
         }
     else
         {
@@ -413,7 +484,6 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             // VALUE, LIKE [name = "john"] OR [number = 10.5]
             // ===============================================================
             
-            //ByteStream ministream;
             char *value_s = value_n.UNION.Node.stor;
             Casted implicit_cast = convert(value_s, type(value_s));
             
@@ -421,13 +491,22 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             switch (implicit_cast.type)
                 {
                     case _INT_:
-                        literal = CONcreate_isn(_INT_, (void *)&implicit_cast.data.inum);
+                        int *p = malloc(sizeof(implicit_cast.data.inum));
+                        *p = implicit_cast.data.inum;
+                        literal = CONcreate_isn(_INT_, (void *)p);
                         break;
                     case _FLOAT_:
-                        literal = CONcreate_isn(_FLOAT_, (void *)&implicit_cast.data.fnum);
+                        float *fp = malloc(sizeof(implicit_cast.data.fnum));
+                        *fp = implicit_cast.data.fnum;
+                        literal = CONcreate_isn(_FLOAT_, (void *)fp);
                         break;
                     case _STRING_:
-                        literal = CONcreate_isn(_STRING_, (void *)&implicit_cast.data.string);
+                        char *sp = malloc(sizeof(char) * strlen(implicit_cast.data.string));
+                        strcpy(sp, implicit_cast.data.string);
+                        literal = CONcreate_isn(_STRING_, (void *)sp);
+                        break;
+                    default:
+                        debugp("here???");
                         break;
                 }
             // append the literal to the stream
@@ -455,31 +534,39 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         // STACK ID_LINKER at the very type.
                         // it just contains a single other ID_LINKER stack inside.
                         // therefore we skip over it with 'nodes[0]'
-                        int links = 0;
-                        bytecode_IDlinker(&assig_n.UNION.Nodes.nodes[0], bs, gem, genm, &links);
-                        // we then want to sequentially load in those keys into the
-                        // respective hashmaps                       
-                        
-                        // thank you stackoverflow
-                        char *seq = malloc(sizeof(char)*(int)log10(links));
-                        sprintf(seq, "%d", links);
-                        
-                        Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);;
-                        ai_stream(bs, loadseq);
-                        
+                        bytecode_IDlinker_func(&assig_n.UNION.Nodes.nodes[0], bs, gem, genm);
+
                         // WE DONT CHECK FOR FUNCTION CALLS HERE
                         // it is illegal to say:
                         // player.something.function() = ...
                         // thus, theres no need to check for it!
                         
+                        // given that LOAD_SEQ num loads a value from a hashmap(s)
+                        // and then stores it on the stack, we need to consume that
+                        // previously loaded item and then store the item before that
+                        // into the hashmap.
+                        // we do this by using STO CONSUME
+                        // this also means that no variable can be named "__CONSUME__" 
+                        // in my programming language.
+                        char *var = "__CONSUME__";
+                        Instruction variable = CMDcreate_isn(_STO, var);
+                        
+                        // append the literal to the stream
+                        ai_stream(bs, variable);
+                        
                         break;
                     case LIST_ACC:
+                        break;
+                    default:
+                        perror("No NODE type exists");
+                        exit(EXIT_FAILURE);
                         break;
                 }
         }
     else
         {
             // convert straight into bytecode here
+            // move(somearg, 107, world.centre(y.h));
             
             // ===============================================================
             // THIS IS IF THE VALUE ON THE LEFT IN JUST A SINGLE VARIABLE LIKE

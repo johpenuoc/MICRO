@@ -484,6 +484,7 @@ typedef struct
         char *string;
         int inum;
         float fnum;
+        
     } data;
     
 } Casted;

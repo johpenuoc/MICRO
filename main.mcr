@@ -1,1 +1,1 @@
-player.box.move(somearg, 107, world.centre());
+a.b = player.x(arg);
