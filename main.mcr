@@ -1,1 +1,1 @@
-list_name = [func1(func2(x))];
+list[0] = 6;

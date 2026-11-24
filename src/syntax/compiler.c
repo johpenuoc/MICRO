@@ -123,6 +123,23 @@ STACK: [PROGRAM]
                                                                     NODE: [IDENTIFIER]--->[arg1]
 */
 
+void bytecode_listacc(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *accesses)
+{
+    // we first grab all of the indexes, similar to 
+    // linkers and functions with arguments
+    bytecode_args(&node->UNION.Nodes.nodes[1], bs, gem, genm);
+    *accesses = node->UNION.Nodes.nodes[1].UNION.Nodes.nodeln + 1;
+
+    char *idname = node->UNION.Nodes.nodes[0].UNION.Node.stor;
+    //Instruction load = CMDcreate_isn(_LOAD, idname);
+    //ai_stream(bs, load);
+    Instruction string = CONcreate_isn(_STRING_, idname);
+    ai_stream(bs, string);
+    
+    Instruction push = CMDcreate_isn(_PUSH, "");
+    ai_stream(bs, push);
+}
+
 void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {   
     char *id = node->UNION.Node.stor;
@@ -384,12 +401,6 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
         }
 }
 
-void bytecode_CONTAINED_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
-{
-    int *links = 0;
-    
-}
-
 void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
     // this loops through all of the nodes in an
@@ -465,6 +476,9 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                         // parent stack, so we use index 0 to bypass it
                                         bytecode_IDlinker_func(&subnode.UNION.Nodes.nodes[0], bs, gem, genm);
                                         break;
+                                    /*case LIST_ACC:
+                                        bytecode_args(&subnode, bs, gem, genm);
+                                        break;*/
                                     case LIST:
                                         bytecode_args(&subnode, bs, gem, genm);
                                         sto_type = _STO_SEQ;
@@ -532,7 +546,8 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
     if (assig_n.utype == NODES)
         {
             // ===============================================================
-            // THIS WILL ALWAYS BE A LINKER OR AN LIST[INDEX]
+            // THIS WILL ALWAYS BE A LINKER OR AN LIST[INDEX] <-- idk what i
+            // was thinking when i wrote this. ima leave it here though...
             // ===============================================================
             
             switch (assig_n.UNION.Nodes.type)
@@ -582,6 +597,22 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         
                         break;
                     case LIST_ACC:
+                        int accesses = 0;
+                        bytecode_listacc(&assig_n, bs, gem, genm, &accesses);
+                        //bytecode_args(&assig_n.UNION.Nodes.nodes[1], bs, gem, genm);
+                        
+                        char *seq = malloc(sizeof(char)*(int)log10(accesses));
+                        sprintf(seq, "%d", accesses);
+                        
+                        Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                        ai_stream(bs, loadseq);
+                        
+                        Instruction push = CMDcreate_isn(_PUSH, "");
+                        ai_stream(bs, push);
+                        
+                        char *_var = "__CONSUME__";
+                        Instruction _variable = CMDcreate_isn(sto_type, _var);
+                        ai_stream(bs, _variable);
                         break;
                     default:
                         perror("No NODE type exists");
@@ -591,8 +622,9 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
         }
     else
         {
+            // buf [move(somearg, 107, world.centre(y.h));]
+            
             // convert straight into bytecode here
-            // move(somearg, 107, world.centre(y.h));
             
             // ===============================================================
             // THIS IS IF THE VALUE ON THE LEFT IN JUST A SINGLE VARIABLE LIKE

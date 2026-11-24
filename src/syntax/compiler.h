@@ -11,6 +11,7 @@ void ai_stream(ByteStream *bs, Instruction ins);;
 void agem(enum _TYPE_ atype, Genmem *gem);
 void agenm(NodeMaster node, NodeMaster *genm);
 
+void bytecode_listacc(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *accesses);
 void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm);
 void bytecode_literal(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm);
 void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
