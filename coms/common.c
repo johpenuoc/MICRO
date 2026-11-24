@@ -231,6 +231,7 @@ typedef struct
         CMD cmd;
         MEM mem;
         CON con;
+        
     } data;
     
 } Instruction;

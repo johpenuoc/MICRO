@@ -225,32 +225,52 @@ STACK: [PROGRAM]
 */
 
 void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm)
-{
-    //ByteStream ministream;
-    //create_mbs(&ministream);
-    
-    //ByteStream mministream;
-    //create_ibs(&mministream);
-    
+{   
     char *id = node->UNION.Node.stor;
     Instruction load = CMDcreate_isn(_LOAD, id);
-    //ai_stream(&mministream, load);
-    //am_stream(&ministream, mministream);
     ai_stream(bs, load);
-    //reset_ibs(&mministream);
     
     Instruction push = CMDcreate_isn(_PUSH, "");
-    //ai_stream(&mministream, push);
-    //am_stream(&ministream, mministream);
     ai_stream(bs, push);
-    //am_stream(bs, ministream);
+}
+
+void bytecode_literal(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm)
+{   
+    
+    char *value_s = node->UNION.Node.stor;
+    Casted implicit_cast = convert(value_s, type(value_s));
+    
+    Instruction literal;
+    switch (implicit_cast.type)
+        {
+            case _INT_:
+                int *p = malloc(sizeof(implicit_cast.data.inum));
+                *p = implicit_cast.data.inum;
+                literal = CONcreate_isn(_INT_, (void *)p);
+                break;
+            case _FLOAT_:
+                float *fp = malloc(sizeof(implicit_cast.data.fnum));
+                *fp = implicit_cast.data.fnum;
+                literal = CONcreate_isn(_FLOAT_, (void *)fp);
+                break;
+            case _STRING_:
+                char *sp = malloc(sizeof(char) * strlen(implicit_cast.data.string));
+                strcpy(sp, implicit_cast.data.string);
+                literal = CONcreate_isn(_STRING_, (void *)sp);
+                break;
+            default:
+                perror("Idk man...");
+                exit(EXIT_FAILURE);
+        }
+        
+    ai_stream(bs, literal);
+    
+    Instruction push = CMDcreate_isn(_PUSH, "");
+    ai_stream(bs, push);
 }
 
 void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
-{
-    //ByteStream ministream;
-    //create_mbs(&ministream);
-    
+{   
     // there are no arguments, so we simply return
     if (node_s->UNION.Nodes.nodeln < 1) return;
     
@@ -278,6 +298,26 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
                             case FUNCTION_CALL:
                                 bytecode_func(&subnode, bs, gem, genm);
                                 break;
+                            case ID_LINKER:
+                                // remember, we go straight to index '0' because an ID_LINKER
+                                // always has a stupid, redudant ID_LINKER parent stack that 
+                                // does nothing but make life a little bit more complicated than it 
+                                // has to be 
+                                int linker_cnt = 0;
+                                bytecode_IDlinker(&subnode.UNION.Nodes.nodes[0], bs, gem, genm, &linker_cnt);
+                                
+                                char *seq = malloc(sizeof(char)*(int)log10(linker_cnt));
+                                sprintf(seq, "%d", linker_cnt);
+                                
+                                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                                ai_stream(bs, loadseq);
+                                
+                                Instruction push = CMDcreate_isn(_PUSH, "");
+                                ai_stream(bs, push);
+                                
+                                Instruction call = CMDcreate_isn(_CALL, "");
+                                ai_stream(bs, call);
+                                break;
                         }
                 }
             else
@@ -286,10 +326,10 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
                         {
                             case IDENTIFIER:
                                 bytecode_identifier(&subnode, bs, gem, genm);
-                                
-                                //am_stream(bs, ministream);
-                                
-                                //reset_mbs(&ministream);
+                                break;
+                            case NUMBER:
+                            case STRING:
+                                bytecode_literal(&subnode, bs, gem, genm);
                                 break;
                         }
                 }
@@ -298,31 +338,22 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
 
 void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
-    //ByteStream ministream = mbs_init();
-    //ByteStream ministream;
-    //create_mbs(&ministream);
-    
     // we want to load any arguments first, of course
     NodeMaster arg_stack = node_s->UNION.Nodes.nodes[1];
     bytecode_args(&arg_stack, bs, gem, genm);
     
-    //ByteStream mministream;
-    //create_ibs(&mministream);
     // at index 1 (true index is list[0]), will always be the function name 
     char *func_name = node_s->UNION.Nodes.nodes[0].UNION.Node.stor;
-    Instruction call = CMDcreate_isn(_CALL, func_name);
-    // PROBLEM HERE
-    //ai_stream(&mministream, call);
-    //am_stream(&ministream, mministream);
-    //am_stream(bs, ministream);
+    Instruction load = CMDcreate_isn(_LOAD, func_name);
+    ai_stream(bs, load);
+    Instruction push = CMDcreate_isn(_PUSH, "");
+    ai_stream(bs, push);
+    Instruction call = CMDcreate_isn(_CALL, "");
     ai_stream(bs, call);
 }
 
 void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
-    //ByteStream ministream;
-    //create_mbs(&ministream);
-    
     int links = 0;
     bytecode_IDlinker(node_s, bs, gem, genm, &links);
     
@@ -343,8 +374,12 @@ void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, Nod
             ai_stream(bs, loadseq);
             //reset_ibs(&mministream);
             
-            // we need to load the function now
-            //bytecode_func(&genm->UNION.Nodes.nodes[genm->UNION.Nodes.nodeln - 1], &ministream, gem, genm);
+            // after loading the hashmap keys, we push whats loaded onto the stack
+            Instruction push = CMDcreate_isn(_PUSH, "");
+            ai_stream(bs, push);
+            // we then call it because it is a function
+            Instruction call = CMDcreate_isn(_CALL, "");
+            ai_stream(bs, call);
         }
         
     //am_stream(bs, ministream);
@@ -674,6 +709,9 @@ void traverse3(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm
                         // we will ASSUME A FUNCTION CALL
                         bytecode_IDlinker_func(&node_s.UNION.Nodes.nodes[0], bs, gem, genm);
                         break;
+                    case FUNCTION_CALL:
+                        bytecode_func(&node_s, bs, gem, genm);
+                        break;
                     default:
                         debugp("Hit a default");
                         break;
@@ -752,7 +790,7 @@ ByteStream compile(NodeMaster *stack)
                      enum _COMMAND_ cmd = isn.data.cmd.cmdt;
                      printf("%s %s", cmdt_types[cmd], isn.data.cmd.val);
                     
-                     if (cmd == _PUSH || cmd == _LOAD_SEQ) printf("\n");
+                     if (cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) printf("\n");
                  }
              else if (isn.isnt == __MEM)
                  {

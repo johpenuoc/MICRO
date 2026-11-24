@@ -631,3 +631,57 @@ CALL move
 
 ### 10:34
 Okidokie. I got it working. It loads the arguments before loading in the objects for hashing. AND I re-did the ByteStream struct again. It was getting a little confusing. Nonetheless, It's now been simplified and slightly optimised. Though, true optimisation will be happening when I completely rewrite the entire codebase. This is just to get something working. Performance is not something I care about right now, especially considering I don't know much about C and it's my second project.
+
+### 12:00
+I'm back! Time to continue developing processing arguments!
+
+### 12:27
+It can now load identifiers, literals, and so the next step will be to load functions and stuff.
+
+### 12:40
+Okidokie. As it stands right now, the compiler can take arguments in a function which range from literals to identifiers to linkers. For example:
+
+player.box.move(somearg, "name", 0.5, 4, player.x);
+
+This gets converted into:
+
+LOAD somearg
+PUSH
+
+"name" STRING,
+PUSH
+
+0.500000 FLOAT,
+PUSH
+
+4 INT,
+PUSH
+
+x STRING,
+PUSH
+
+player STRING,
+PUSH
+
+LOAD_SEQ 2
+
+PUSH
+
+move STRING,
+PUSH
+
+box STRING,
+PUSH
+
+player STRING,
+PUSH
+
+LOAD_SEQ 3
+
+PUSH
+
+CALL
+
+Next will be to get the recursion really working; we will pass functions as arguments into other functions, which themselves may contain arguments which could be even more functions!
+
+Continuing development now.
