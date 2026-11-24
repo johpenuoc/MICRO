@@ -30,7 +30,7 @@ enum _COMMAND_
     
     _SET, _PUSH_KEYL, _HASH_SEQ, _END_HASH_SEQ,
     
-    _HASH, _LOAD_SEQ,
+    _HASH, _LOAD_SEQ, _STO_SEQ, _PROVIDE,
     
     SPLIT
 };

@@ -1,1 +1,1 @@
-a.b = player.x(arg);
+list_name = [func1(func2(x))];

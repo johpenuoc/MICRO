@@ -700,3 +700,53 @@ The bytecode is a little lengthy, but I'm purposely using as little commands as 
 Next up for development: lists and list accessing.
 
 Continuing development.
+
+But first, what would a list look like in bytecode...
+
+LIST ACCESSING:
+...............
+I'm thinking we do the same thing as we did with linkers:
+
+list[0, 2]; -->
+
+2 STRING
+PUSH
+
+0 STRING (we convert it into a string)
+PUSH
+
+LOAD list
+PUSH
+
+LOAD_SEQ 3
+PUSH
+
+Why can't a list simply be a multi-dimensional hashmap underneath with multiple values? Idk, I think I'm just going to stick with doing it this way.
+
+LIST CREATING:
+..............
+As a list is basically just a multi-dimensional hashmap under-the-hood, I just need to create a spot on the hash map and essentially append each 'argument' into it. That may look like:
+
+list = [1, 5, "name"]; -->
+
+1 INT
+PUSH
+
+5 INT
+PUSH
+
+name STRING
+PUSH
+
+STO_SEQ list 3
+
+Lets get developing!
+
+### 14:48
+You can now define lists!
+
+list = [...]
+
+Pretty cool mannnn.
+
+Time to develop list-index-accessing.

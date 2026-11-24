@@ -430,6 +430,8 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                  break;   
         }
     
+    enum _COMMAND_ sto_type = _STO;
+    int sto_data = 0;
     if (value_n.utype == NODES)
         {
             // ===============================================================
@@ -446,6 +448,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                             // if this is the case, then the subnode will always be
                             // an expression, so we skip it and go straight to the
                             // very first index
+                            
                             /*NodeMaster subsubnode = subnode.UNION.Nodes.nodes[0];
                             enum _TYPE_ type;
                             bool is_NODES = false;
@@ -461,6 +464,11 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                         // remember, that stupid, redundant ID_LINKER
                                         // parent stack, so we use index 0 to bypass it
                                         bytecode_IDlinker_func(&subnode.UNION.Nodes.nodes[0], bs, gem, genm);
+                                        break;
+                                    case LIST:
+                                        bytecode_args(&subnode, bs, gem, genm);
+                                        sto_type = _STO_SEQ;
+                                        sto_data = subnode.UNION.Nodes.nodeln;
                                         break;
                                 }     
                         }
@@ -506,7 +514,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         literal = CONcreate_isn(_STRING_, (void *)sp);
                         break;
                     default:
-                        debugp("here???");
+                        debugp("hit default");
                         break;
                 }
             // append the literal to the stream
@@ -549,10 +557,28 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         // this also means that no variable can be named "__CONSUME__" 
                         // in my programming language.
                         char *var = "__CONSUME__";
-                        Instruction variable = CMDcreate_isn(_STO, var);
+                        Instruction variable = CMDcreate_isn(sto_type, var);
                         
                         // append the literal to the stream
                         ai_stream(bs, variable);
+                        
+                        // we always check what kind of STO type it is, because if it
+                        // is a _STO_SEQ type, then we also need to specify the sequence
+                        // length
+                        switch (sto_type)
+                            {
+                                case _STO:
+                                    break;
+                                case _STO_SEQ:
+                                    // _PROVIDE simply 'provides' the previous command
+                                    // with some data.
+                                    // i know... it's a very messy work-around
+                                    char *cseq = malloc(sizeof(char)*(int)log10(sto_data));
+                                    sprintf(cseq, "%d", sto_data);
+                                    Instruction seq = CMDcreate_isn(_PROVIDE, cseq);
+                                    ai_stream(bs, seq);
+                                    break;
+                            }
                         
                         break;
                     case LIST_ACC:
@@ -574,10 +600,30 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             // ===============================================================
             
             char *var = assig_n.UNION.Node.stor;
-            Instruction variable = CMDcreate_isn(_STO, var);
+            Instruction variable = CMDcreate_isn(sto_type, var);
             
             // append the literal to the stream
             ai_stream(bs, variable);
+            
+            // we always check what kind of STO type it is, because if it
+            // is a _STO_SEQ type, then we also need to specify the sequence
+            // length
+            switch (sto_type)
+                {
+                    case _STO:
+                        break;
+                    case _STO_SEQ:
+                        // _PROVIDE simply 'provides' the previous command
+                        // with some data.
+                        // i know... it's a very messy work-around
+                        
+                        char *cseq = malloc(sizeof(char)*(int)log10(sto_data));
+                        sprintf(cseq, "%d", sto_data);
+                        Instruction seq = CMDcreate_isn(_PROVIDE, cseq);
+                        ai_stream(bs, seq);
+                        break;
+                }
+                            
         }
 }
 
