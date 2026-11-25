@@ -1133,3 +1133,8 @@ JUMP_IF_TRUE 1,
 SCOPE_END
 
 I'm logging off...
+
+### 20:49
+I'm back. I'm going to implement that else statement now in bytecode.
+
+Continuing development.

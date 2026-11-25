@@ -1022,7 +1022,7 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
     // the JUMP command how far back, relatively, to go depending
     // on the condition
     
-    Instruction jump_forward = CMDcreate_isn(_JMP_IF_FALSE, "", __NOFLAG__);
+    Instruction jump_forward = CMDcreate_isn(_JUMP_IF_FALSE, "", __NOFLAG__);
     ai_stream(bs, jump_forward);
     
     int buf = bs->streamln;
@@ -1035,9 +1035,8 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
     address = bs->streamln - buf + 2;
 
     char *cseq = malloc(sizeof(char)*(int)log10(address - 3));
-    // PROBLEM HERE
     sprintf(cseq, "%d", address - 3);
-    Instruction jump_backward = CMDcreate_isn(_JMP_IF_TRUE, cseq, __NOFLAG__);
+    Instruction jump_backward = CMDcreate_isn(_JUMP_IF_TRUE, cseq, __NOFLAG__);
     ai_stream(bs, jump_backward);
     
     // we need to retrospecively go back and alter _JMP_IF_FALSE so
@@ -1125,6 +1124,15 @@ STACK: [IF]
                         NODE: [NUMBER]------->[1]
                         
 */
+void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement)
+{
+    int buf = bs->streamln;
+    
+    traverse(stack, bs, gem, genm);
+    
+    *pre_ifelse_statement = bs->streamln - buf;
+}
+
 void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement)
 {
     // an IF stack is always orientated like this
@@ -1138,7 +1146,7 @@ void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *ge
     int curr_condition_length = bs->streamln - pre;
     
     // this one jumps to the next else-if statement
-    Instruction jump_forward = CMDcreate_isn(_JMP_IF_FALSE, "", __NOFLAG__);
+    Instruction jump_forward = CMDcreate_isn(_JUMP_IF_FALSE, "", __NOFLAG__);
     ai_stream(bs, jump_forward);
     int jiff_address = bs->streamln - 1;
     
@@ -1159,7 +1167,7 @@ void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *ge
     bs->stream[bs->streamln - (bs->streamln - buf) - 1].data.cmd.val = cseq;
     
     // this one jumps to either the else statement or after the if statement
-    Instruction jump_to_end = CMDcreate_isn(_JMP_IF_TRUE, "0", __NOFLAG__);
+    Instruction jump_to_end = CMDcreate_isn(_JUMP, "0", __NOFLAG__);
     ai_stream(bs, jump_to_end);
     int jift_address = bs->streamln - 1; 
     printf("pre jift: %d %d\n", jift_address, jiff_address);
@@ -1182,6 +1190,7 @@ void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *ge
                             else 
                                 {
                                     // hit an else-only block
+                                    bytecode_else(&elseif_node.UNION.Nodes.nodes[0], bs, gem, genm, &inner_scope_length);
                                 }
                         }
                 }
