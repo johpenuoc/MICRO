@@ -994,3 +994,78 @@ Continuing development. Or maybe I'll go grab lunch.
 I'm back, but my laptop is on 14% and the only plug available is by some girl... I may have to move rapidly.
 
 This mustn't impede development and progress.
+
+### 15:37
+A plug has been secured and the bytecode translation is going well! Here:
+
+a = 1;
+until !(link1.obj < 10)
+    {
+        something = variable[2] + b[1];        
+        idk = [func(2)];
+    };
+
+This gets translated into the bytecode:
+
+SCOPE_START
+
+1 INT, PUSH
+
+STO a, obj STRING, PUSH
+
+link1 STRING, PUSH
+
+LOAD_SEQ 2, PUSH
+
+11 INT, PUSH
+
+LESS_THAN
+PUSH
+
+INVERSE
+PUSH
+
+JUMP_IF_FALSE 26,
+SCOPE_START
+
+2 INT, PUSH
+
+variable STRING, PUSH
+
+LOAD_SEQ 2, PUSH
+
+1 INT, PUSH
+
+b STRING, PUSH
+
+LOAD_SEQ 2, PUSH
+
+ADD
+PUSH
+
+STO something, 2 INT, PUSH
+
+LOAD func, PUSH
+
+CALL
+
+STO_SEQ idk,
+PROVIDE 1,
+SCOPE_END
+
+JUMP_IF_TRUE 23,
+SCOPE_END
+
+Pretty cool!
+
+Time to being development on if-statements.
+
+### 16:38
+I thought it'd be wiser to complete some basic translation functions, like being able to translate '+=' and '/=' first. I have succeeded by using 'FLAGS' tagged onto the end of every CMD. But for some reason, I'm getting random STO_MUL commands??? No idea where they're coming from.
+
+Patching now.
+
+### 16:41
+Nevermind, it was a printing error xD
+
+Logging off and going to grab some food.

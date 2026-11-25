@@ -8,6 +8,7 @@ extern char *TERM;
 extern char *MODE;
 
 extern char *type_names[];
+extern char *flags[];
 extern char *stack_type_names[];
 extern char *utypes[];
 extern char *cmdt_types[];
@@ -18,6 +19,15 @@ extern char *mem_types[];
 enum _UTYPE_
 {
     NODE, NODES
+};
+
+enum _FLAG_
+{
+    __NOFLAG__,
+    
+    __CONSUME__,
+    
+    __ADDEQ__, __SUBEQ__, __MULEQ__, __DIVEQ__
 };
 
 enum _COMMAND_
@@ -122,6 +132,7 @@ typedef struct
         int index;
         char *key;
         int keylistid;
+        
     } loc;
     
 } MEM;
@@ -130,6 +141,7 @@ typedef struct
 {
     enum _COMMAND_ cmdt;
     char *val;
+    enum _FLAG_ flag;
     
 } CMD;
 
@@ -153,6 +165,7 @@ typedef struct
         CMD cmd;
         MEM mem;
         CON con;
+        
     } data;
     
 } Instruction;
@@ -182,6 +195,7 @@ typedef struct
         char *string;
         int inum;
         float fnum;
+        
     } data;
     
 } Casted;

@@ -26,14 +26,15 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
 void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
 void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
 
-Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val)
+Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val, enum _FLAG_ _flag)
 {
     Instruction isn;
     isn.isnt = __CMD;
     isn.data.cmd = (CMD) 
         {
            .cmdt =  cmdtype,
-           .val = _val
+           .val = _val,
+           .flag = _flag
         };
     
     return isn;
@@ -146,17 +147,17 @@ void bytecode_listacc(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster 
     Instruction string = CONcreate_isn(_STRING_, idname);
     ai_stream(bs, string);
     
-    Instruction push = CMDcreate_isn(_PUSH, "");
+    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
     ai_stream(bs, push);
 }
 
 void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {   
     char *id = node->UNION.Node.stor;
-    Instruction load = CMDcreate_isn(_LOAD, id);
+    Instruction load = CMDcreate_isn(_LOAD, id, __NOFLAG__);
     ai_stream(bs, load);
     
-    Instruction push = CMDcreate_isn(_PUSH, "");
+    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
     ai_stream(bs, push);
 }
 
@@ -191,7 +192,7 @@ void bytecode_literal(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster 
         
     ai_stream(bs, literal);
     
-    Instruction push = CMDcreate_isn(_PUSH, "");
+    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
     ai_stream(bs, push);
 }
 
@@ -235,13 +236,13 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
                                 char *seq = malloc(sizeof(char)*(int)log10(linker_cnt));
                                 sprintf(seq, "%d", linker_cnt);
                                 
-                                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                                 ai_stream(bs, loadseq);
                                 
-                                Instruction push = CMDcreate_isn(_PUSH, "");
+                                Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                                 ai_stream(bs, push);
                                 
-                                Instruction call = CMDcreate_isn(_CALL, "");
+                                Instruction call = CMDcreate_isn(_CALL, "", __NOFLAG__);
                                 ai_stream(bs, call);
                                 break;
                             case LIST_ACC:
@@ -250,10 +251,10 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
 
                                 char *__seq = malloc(sizeof(char)*(int)log10(counter));
                                 sprintf(__seq, "%d", counter);
-                                Instruction __loadseq = CMDcreate_isn(_LOAD_SEQ, __seq);
+                                Instruction __loadseq = CMDcreate_isn(_LOAD_SEQ, __seq, __NOFLAG__);
                                 ai_stream(bs, __loadseq);
 
-                                Instruction __push = CMDcreate_isn(_PUSH, "");
+                                Instruction __push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                                 ai_stream(bs, __push);
                                 
                                 break;
@@ -262,10 +263,10 @@ void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
                                 
                                 char *_seq = malloc(sizeof(char)*(int)log10(subnode.UNION.Nodes.nodeln));
                                 sprintf(_seq, "%d", subnode.UNION.Nodes.nodeln);
-                                Instruction _loadseq = CMDcreate_isn(_LOAD_SEQ, _seq);
+                                Instruction _loadseq = CMDcreate_isn(_LOAD_SEQ, _seq, __NOFLAG__);
                                 ai_stream(bs, _loadseq);
                                 
-                                Instruction _push = CMDcreate_isn(_PUSH, "");
+                                Instruction _push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                                 ai_stream(bs, _push);
                                 
                                 break;
@@ -298,11 +299,11 @@ void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
     
     // at index 1 (true index is list[0]), will always be the function name 
     char *func_name = node_s->UNION.Nodes.nodes[0].UNION.Node.stor;
-    Instruction load = CMDcreate_isn(_LOAD, func_name);
+    Instruction load = CMDcreate_isn(_LOAD, func_name, __NOFLAG__);
     ai_stream(bs, load);
-    Instruction push = CMDcreate_isn(_PUSH, "");
+    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
     ai_stream(bs, push);
-    Instruction call = CMDcreate_isn(_CALL, "");
+    Instruction call = CMDcreate_isn(_CALL, "", __NOFLAG__);
     ai_stream(bs, call);
 }
 
@@ -328,14 +329,14 @@ void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, Nod
                     char *seq = malloc(sizeof(char)*(int)log10(links));
                     sprintf(seq, "%d", links);
                     
-                    Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                    Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                     ai_stream(bs, loadseq);
                     
                     // after loading the hashmap keys, we push whats loaded onto the stack
-                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                     ai_stream(bs, push);
                     // we then call it because it is a function
-                    Instruction call = CMDcreate_isn(_CALL, "");
+                    Instruction call = CMDcreate_isn(_CALL, "", __NOFLAG__);
                     ai_stream(bs, call);
                     
                     non_regular = true;
@@ -346,10 +347,10 @@ void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, Nod
             char *seq = malloc(sizeof(char)*(int)log10(links));
             sprintf(seq, "%d", links);
             
-            Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+            Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
             ai_stream(bs, loadseq);
             
-            Instruction push = CMDcreate_isn(_PUSH, "");
+            Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
             ai_stream(bs, push);
         }
 }
@@ -370,7 +371,7 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
             Instruction literal = CONcreate_isn(_STRING_, (void *)subsublink.UNION.Node.stor);
             ai_stream(bs, literal);
             
-            Instruction push = CMDcreate_isn(_PUSH, "");
+            Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
             ai_stream(bs, push);
             (*linker_cnt)++;
         }
@@ -398,7 +399,7 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
                     Instruction literal = CONcreate_isn(_STRING_, (void *)node.UNION.Node.stor);
                     ai_stream(bs, literal);
                     
-                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                     ai_stream(bs, push); 
                     (*linker_cnt)++;
                     // =====================================================
@@ -430,7 +431,7 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
             Instruction _literal = CONcreate_isn(_STRING_, (void *)sublink.UNION.Node.stor);
             ai_stream(bs, _literal);
             
-            Instruction push = CMDcreate_isn(_PUSH, "");
+            Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
             ai_stream(bs, push);
             (*linker_cnt)++;
         }
@@ -451,8 +452,7 @@ void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMas
             case ID_LINKER:
                 bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
                 
-                char *var = "__CONSUME__";
-                Instruction variable = CMDcreate_isn(_LOAD, var);
+                Instruction variable = CMDcreate_isn(_LOAD, "", __CONSUME__);
                 
                 break;
             case NUMBER:
@@ -468,10 +468,10 @@ void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMas
                 char *seq = malloc(sizeof(char)*(int)log10(accesses));
                 sprintf(seq, "%d", accesses);
                 
-                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                 ai_stream(bs, loadseq);
                 
-                Instruction push = CMDcreate_isn(_PUSH, "");
+                Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                 ai_stream(bs, push);
                 break;
             case FUNCTION_CALL:
@@ -483,8 +483,7 @@ void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMas
             case ID_LINKER:
                 bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
                 
-                char *var = "__CONSUME__";
-                Instruction variable = CMDcreate_isn(_LOAD, var);
+                Instruction variable = CMDcreate_isn(_LOAD, "", __CONSUME__);
                 
                 break;
             case NUMBER:
@@ -500,10 +499,10 @@ void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMas
                 char *seq = malloc(sizeof(char)*(int)log10(accesses));
                 sprintf(seq, "%d", accesses);
                 
-                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                 ai_stream(bs, loadseq);
                 
-                Instruction push = CMDcreate_isn(_PUSH, "");
+                Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                 ai_stream(bs, push);
                 break;
             case FUNCTION_CALL:
@@ -513,34 +512,34 @@ void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMas
     switch (oper_type)
         {
             case ADD:
-                Instruction add = CMDcreate_isn(_ADD, "");
+                Instruction add = CMDcreate_isn(_ADD, "", __NOFLAG__);
                 ai_stream(bs, add);
                 {
-                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                     ai_stream(bs, push);
                 }
                 break;
             case SUB:
-                Instruction sub = CMDcreate_isn(_SUB, "");
+                Instruction sub = CMDcreate_isn(_SUB, "", __NOFLAG__);
                 ai_stream(bs, sub);
                 {
-                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                     ai_stream(bs, push);
                 }
                 break;
             case STAR:
-                Instruction mul = CMDcreate_isn(_MUL, "");
+                Instruction mul = CMDcreate_isn(_MUL, "", __NOFLAG__);
                 ai_stream(bs, mul);
                 {
-                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                     ai_stream(bs, push);
                 }
                 break;
             case DIV:
-                Instruction div = CMDcreate_isn(_DIV, "");
+                Instruction div = CMDcreate_isn(_DIV, "", __NOFLAG__);
                 ai_stream(bs, div);
                 {
-                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                     ai_stream(bs, push);
                 }
                 break;
@@ -568,7 +567,8 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
     // we sit this here first because if the operator happens to be
     // a '+=', then we need to add the previous assig_n value onto
     // the evaluated expression
-    switch (oper_n.UNION.Node.type)
+    enum _COMMAND_ assig_oper = oper_n.UNION.Node.type;
+    /*switch (oper_n.UNION.Node.type)
         {
              case EQUAL:
                  break;
@@ -585,10 +585,37 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                  perror("Undefined operator type");
                  exit(EXIT_FAILURE);
                  break;   
-        }
+        }*/
     
     enum _COMMAND_ sto_type = _STO;
     int sto_data = 0;
+    enum _FLAG_ sto_flag = __NOFLAG__;
+    
+    // we check what kind of operator it was so we 
+    // can assign the correct flag
+    switch (assig_oper)
+        {
+             case EQUAL:
+                 break;
+             case ADD_EQ:
+                 sto_flag = __ADDEQ__;
+                 break;
+             case SUB_EQ:
+                 sto_flag = __SUBEQ__;
+                 break;
+             case STAR_EQ:
+                 sto_flag = __MULEQ__;
+                 break;
+             case DIV_EQ:
+                 sto_flag = __DIVEQ__;
+                 break;
+             
+             default:
+                 perror("Undefined operator type");
+                 exit(EXIT_FAILURE);
+                 break;   
+        }
+                
     if (value_n.utype == NODES)
         {
             // ===============================================================
@@ -633,10 +660,10 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                         char *seq = malloc(sizeof(char)*(int)log10(accesses));
                                         sprintf(seq, "%d", accesses);
                                         
-                                        Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                                        Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                                         ai_stream(bs, loadseq);
                                         
-                                        Instruction push = CMDcreate_isn(_PUSH, "");
+                                        Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                                         ai_stream(bs, push);
                                         break;
                                     case LIST:
@@ -684,6 +711,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             switch (assig_n.UNION.Nodes.type)
                 {
                     case ID_LINKER:
+                        sto_flag = __CONSUME__;
                         // in the parser.c, ID_LINKER always has a redudant and useless
                         // STACK ID_LINKER at the very type.
                         // it just contains a single other ID_LINKER stack inside.
@@ -702,8 +730,8 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         // we do this by using STO CONSUME
                         // this also means that no variable can be named "__CONSUME__" 
                         // in my programming language.
-                        char *var = "__CONSUME__";
-                        Instruction variable = CMDcreate_isn(sto_type, var);
+                        
+                        Instruction variable = CMDcreate_isn(sto_type, "", sto_flag);
                         
                         // append the literal to the stream
                         ai_stream(bs, variable);
@@ -721,26 +749,26 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                     // i know... it's a very messy work-around
                                     char *cseq = malloc(sizeof(char)*(int)log10(sto_data));
                                     sprintf(cseq, "%d", sto_data);
-                                    Instruction seq = CMDcreate_isn(_PROVIDE, cseq);
+                                    Instruction seq = CMDcreate_isn(_PROVIDE, cseq, __NOFLAG__);
                                     ai_stream(bs, seq);
                                     break;
                             }
                         
                         break;
                     case LIST_ACC:
+                        sto_flag = __CONSUME__;
                         bytecode_listacc(&assig_n, bs, gem, genm, &sto_data);
                         
                         char *seq = malloc(sizeof(char)*(int)log10(sto_data));
                         sprintf(seq, "%d", sto_data);
                         
-                        Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                        Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                         ai_stream(bs, loadseq);
                         
-                        Instruction push = CMDcreate_isn(_PUSH, "");
+                        Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                         ai_stream(bs, push);
                         
-                        char *_var = "__CONSUME__";
-                        Instruction _variable = CMDcreate_isn(sto_type, _var);
+                        Instruction _variable = CMDcreate_isn(sto_type, "", sto_flag);
                         ai_stream(bs, _variable);
                         
                         switch (sto_type)
@@ -753,7 +781,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                     // i know... it's a very messy work-around
                                     char *_cseq = malloc(sizeof(char)*(int)log10(sto_data));
                                     sprintf(_cseq, "%d", sto_data);
-                                    Instruction seq = CMDcreate_isn(_PROVIDE, _cseq);
+                                    Instruction seq = CMDcreate_isn(_PROVIDE, _cseq, __NOFLAG__);
                                     ai_stream(bs, seq);
                                     break;
                             }
@@ -768,9 +796,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                 }
         }
     else
-        {
-            // buf [move(somearg, 107, world.centre(y.h));]
-            
+        {            
             // convert straight into bytecode here
             
             // ===============================================================
@@ -779,7 +805,14 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             // ===============================================================
             
             char *var = assig_n.UNION.Node.stor;
-            Instruction variable = CMDcreate_isn(sto_type, var);
+            Instruction load = CMDcreate_isn(_LOAD, var, __NOFLAG__);
+            Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
+            Instruction op_itself;
+            
+            // we first see why kind of assignment operator it was
+            
+            // actually store the variable
+            Instruction variable = CMDcreate_isn(sto_type, var, sto_flag);
             
             // append the literal to the stream
             ai_stream(bs, variable);
@@ -798,7 +831,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                         
                         char *cseq = malloc(sizeof(char)*(int)log10(sto_data));
                         sprintf(cseq, "%d", sto_data);
-                        Instruction seq = CMDcreate_isn(_PROVIDE, cseq);
+                        Instruction seq = CMDcreate_isn(_PROVIDE, cseq, __NOFLAG__);
                         ai_stream(bs, seq);
                         break;
                 }
@@ -831,10 +864,10 @@ void bytecode_not(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *g
     
     // we inverse whatever was calculated before it
     // ========= may not need '__CONSUME__' =========  
-    Instruction inverse = CMDcreate_isn(_INVERSE, "");//, "__CONSUME__");
+    Instruction inverse = CMDcreate_isn(_INVERSE, "", __NOFLAG__);//, "__CONSUME__");
     ai_stream(bs, inverse);
     
-    Instruction push = CMDcreate_isn(_PUSH, "");
+    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
     ai_stream(bs, push);
 }
 
@@ -853,8 +886,7 @@ void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, Node
             case ID_LINKER:
                 bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
                 
-                char *var = "__CONSUME__";
-                Instruction variable = CMDcreate_isn(_LOAD, var);
+                Instruction variable = CMDcreate_isn(_LOAD, "", __CONSUME__);
                 
                 break;
             case NUMBER:
@@ -870,10 +902,10 @@ void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, Node
                 char *seq = malloc(sizeof(char)*(int)log10(accesses));
                 sprintf(seq, "%d", accesses);
                 
-                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                 ai_stream(bs, loadseq);
                 
-                Instruction push = CMDcreate_isn(_PUSH, "");
+                Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                 ai_stream(bs, push);
                 break;
             case FUNCTION_CALL:
@@ -885,8 +917,7 @@ void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, Node
             case ID_LINKER:
                 bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
                 
-                char *var = "__CONSUME__";
-                Instruction variable = CMDcreate_isn(_LOAD, var);
+                Instruction variable = CMDcreate_isn(_LOAD, "", __CONSUME__);
                 
                 break;
             case NUMBER:
@@ -901,10 +932,10 @@ void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, Node
                 char *seq = malloc(sizeof(char)*(int)log10(accesses));
                 sprintf(seq, "%d", accesses);
                 
-                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq);
+                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
                 ai_stream(bs, loadseq);
                 
-                Instruction push = CMDcreate_isn(_PUSH, "");
+                Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                 ai_stream(bs, push);
                 break;
             case FUNCTION_CALL:
@@ -912,7 +943,6 @@ void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, Node
         }
         
     enum _COMMAND_ cmd_type;
-    printf("oper_type: %s\n", cmdt_types[cmd_type]);
     switch (oper_type)
         {
             case GTHAN:
@@ -931,9 +961,9 @@ void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, Node
                 break;
         }
     
-    Instruction oper_cmd = CMDcreate_isn(cmd_type, "");
+    Instruction oper_cmd = CMDcreate_isn(cmd_type, "", __NOFLAG__);
     ai_stream(bs, oper_cmd);   
-    Instruction push = CMDcreate_isn(_PUSH, "");
+    Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
     ai_stream(bs, push);
 }
 
@@ -991,7 +1021,7 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
     // the JUMP command how far back, relatively, to go depending
     // on the condition
     
-    Instruction jump_forward = CMDcreate_isn(_JMP_IF_FALSE, "");
+    Instruction jump_forward = CMDcreate_isn(_JMP_IF_FALSE, "", __NOFLAG__);
     ai_stream(bs, jump_forward);
     
     int buf = bs->streamln;
@@ -1006,7 +1036,7 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
     char *cseq = malloc(sizeof(char)*(int)log10(address - 3));
     // PROBLEM HERE
     sprintf(cseq, "%d", address - 3);
-    Instruction jump_backward = CMDcreate_isn(_JMP_IF_TRUE, cseq);
+    Instruction jump_backward = CMDcreate_isn(_JMP_IF_TRUE, cseq, __NOFLAG__);
     ai_stream(bs, jump_backward);
     
     // we need to retrospecively go back and alter _JMP_IF_FALSE so
@@ -1022,8 +1052,8 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
 
 void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
 {
-    Instruction scope_start = CMDcreate_isn(_SCOPE_START, "");
-    Instruction scope_end = CMDcreate_isn(_SCOPE_END, "");
+    Instruction scope_start = CMDcreate_isn(_SCOPE_START, "", __NOFLAG__);
+    Instruction scope_end = CMDcreate_isn(_SCOPE_END, "", __NOFLAG__);
     
     ai_stream(bs, scope_start);
     for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
@@ -1031,7 +1061,6 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
             NodeMaster node_s = stack->UNION.Nodes.nodes[i];
             // this function ONLY loops through NODES, not NODE's
             enum _TYPE_ stack_type = node_s.UNION.Nodes.type;
-            printf("node --> %s\n", type_names[stack_type]);
             
             switch (stack_type)
                 {
@@ -1100,13 +1129,14 @@ ByteStream compile(NodeMaster *stack)
                  {
                      enum _COMMAND_ cmd = isn.data.cmd.cmdt;
                      printf("%s", cmdt_types[cmd]);
-                     printf(" %s, ", isn.data.cmd.val);
-                     //if (isn.data.cmd.val != "") printf(" %s, ", isn.data.cmd.val);
-                     //else printf("\n");
+                     //printf(" %s, ", isn.data.cmd.val);
+                     if (isn.data.cmd.val != "") printf(" %s, ", isn.data.cmd.val);
+                     if (isn.data.cmd.flag != __NOFLAG__) printf(" %s, ", flags[isn.data.cmd.flag]);
+                     else printf("\n");
                      
-                     //if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf("\n");
-                     printf("\n\n");
-                     //else if (cmd == _SCOPE_START || cmd == _SCOPE_END || cmd == _JMP_IF_TRUE || cmd == _JMP_IF_FALSE || cmd == _STO_SEQ || cmd == _PROVIDE) printf("\n");
+                     if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf("\n");
+                     //printf("\n\n");
+                     else if (cmd == _SCOPE_START || cmd == _SCOPE_END || cmd == _JMP_IF_TRUE || cmd == _JMP_IF_FALSE || cmd == _STO_SEQ || cmd == _PROVIDE) printf("\n");
                  }
              else if (isn.isnt == __MEM)
                  {
@@ -1120,7 +1150,7 @@ ByteStream compile(NodeMaster *stack)
                      if (isn.data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
                      printf("%s, ", data_types[isn.data.con.datat]);
                      
-                     printf("\n\n");
+                     //printf("\n\n");
                  } 
              //printf("\n"); 
         }

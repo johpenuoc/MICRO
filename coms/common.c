@@ -16,6 +16,21 @@ const char *utypes[] = {
     "NODE", "NODES"
 };
 
+enum _FLAG_
+{
+    __CONSUME__,
+     
+    __ADDEQ__, __SUBEQ__, __MULEQ__, __DIVEQ__
+};
+const char *flags[] = 
+{
+    "__NOFLAG__",
+    
+    "__CONSUME__", 
+    
+    "__ADDEQ__", "__SUBEQ__", "__MULEQ__", "__DIVEQ__"
+};
+
 
 enum _COMMAND_
 {
@@ -33,7 +48,8 @@ enum _COMMAND_
     
     _JMP_IF_TRUE, _JMP_IF_FALSE,
 };
-const char *cmdt_types[] = {
+const char *cmdt_types[] = 
+{
     "ADD", "SUB", "MUL", "DIV",
     
     "PUSH", "CALL", 
@@ -206,6 +222,7 @@ typedef struct
 {
     enum _COMMAND_ cmdt;
     char *val;
+    enum _FLAG_ flag;
     
 } CMD;
 

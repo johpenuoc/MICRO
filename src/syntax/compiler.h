@@ -7,7 +7,7 @@ extern int address;
 
 Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val);
 Instruction MEMcreate_isn(enum _MEMTYPE_ memtype, void *_index);
-Instruction CONcreate_isn(enum _DATATYPE_ datatype, void *data);
+Instruction CONcreate_isn(enum _DATATYPE_ datatype, void *data, enum _FLAG_ _flag);
 
 void ai_stream(ByteStream *bs, Instruction ins);;
 void agem(enum _TYPE_ atype, Genmem *gem);
