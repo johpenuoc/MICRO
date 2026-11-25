@@ -1,5 +1,9 @@
+map.list[5, 2] = "hello";
+
 a = 1;
-until !(a.obj > 10)
+until !(link1.obj < 10)
     {
-        a = a + 1;
+        something = variable[2] + b[1];
     };
+    
+something = idk.please[1, 3] + link2.var[5];

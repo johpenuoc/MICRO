@@ -119,11 +119,20 @@ NodeMaster parse_expr(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *me
                     umem(mem, list_acc, memsz);
                     (*token_cnt)--;
                 }
-            else if (token.type == LBRACKET)
+            else if (token.type == LBRACKET && tokens[(*token_cnt) - 1].type != IDENTIFIER)
                 {
                     // basically, we're in a list
                     (*token_cnt)++;
                     NodeMaster list = parse_list(tokens, token_cnt, mem, memsz);
+                    
+                    umem(mem, list, memsz);
+                    
+                    (*token_cnt)--;
+                }
+            else if (token.type == LBRACKET && tokens[(*token_cnt) - 1].type == IDENTIFIER)
+                {
+                    (*token_cnt)--;
+                    NodeMaster list = parse_list_acc(tokens, token_cnt, mem, memsz);
                     
                     umem(mem, list, memsz);
                     
@@ -168,6 +177,8 @@ NodeMaster parse_expr(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *me
                     mmstack.UNION.Nodes.nodes = NULL;
                     mmstack.UNION.Nodes.nodeln = 0;
                     mmstack.UNION.Nodes.type = OPERATION;
+                    debugp("HIT OPERATION");
+                    printf("OPERATION token type: %s\n", type_names[token.type]);
                     
                     // fetch the previous token from memory
                     NodeMaster prev_token = mem->UNION.Nodes.nodes[mem->UNION.Nodes.nodeln - 1];
@@ -218,6 +229,14 @@ NodeMaster parse_expr(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *me
                             
                             (*token_cnt)--;
                         }
+                    else if (tokens[(*token_cnt) + 1].type == IDENTIFIER && tokens[(*token_cnt) + 2].type == LBRACKET)
+                        {
+                            (*token_cnt)++;
+                            next_token = parse_list_acc(tokens, token_cnt, mem, memsz);
+                            umem(mem, next_token, memsz);
+                            
+                            (*token_cnt)--;
+                        }
                     else
                         {
                             next_token.utype = NODE;
@@ -230,7 +249,7 @@ NodeMaster parse_expr(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *me
                     mmstacksz += sizeof(next_token);
                     mmstack.UNION.Nodes.nodes = realloc(mmstack.UNION.Nodes.nodes, mmstacksz);
                     mmstack.UNION.Nodes.nodes[mmstack.UNION.Nodes.nodeln] = next_token;
-                 
+
                     mmstack.UNION.Nodes.nodeln++;
                     
                     // update the memory
@@ -279,8 +298,6 @@ NodeMaster parse_assignment(Token *tokens, int *token_cnt, NodeMaster *mem, size
     
     NodeMaster token = mem->UNION.Nodes.nodes[mem->UNION.Nodes.nodeln - 1];
     Token next_token = tokens[(*token_cnt) + 1];
-    
-    printf("BEFORE:: %s\n", next_token.stor);
     
     // mstack --> ministack, like a branch in a tree   
     size_t mstacksz = 0;
@@ -399,6 +416,7 @@ NodeMaster parse_func(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *me
 NodeMaster parse_IDlinker(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz)
 {
     Token token = tokens[*token_cnt];
+    printf("idlinker token: %s\n", tokens[*token_cnt].stor);
     
     // mstack --> ministack, like a branch in a tree 
     size_t mstacksz = 0;
@@ -458,6 +476,14 @@ NodeMaster parse_IDlinker(Token *tokens, int *token_cnt, NodeMaster *mem, size_t
                         {
                             (*token_cnt)++;
                             next_token = parse_func(tokens, token_cnt, mem, memsz);
+                            
+                            (*token_cnt)--;
+                        }
+                    else if (tokens[(*token_cnt) + 2].type == LBRACKET)
+                        {
+                            (*token_cnt)++;
+                            debugp("aksjdfhkjasdhfkjlasdhfkljahsdfkljs");
+                            next_token = parse_list_acc(tokens, token_cnt, mem, memsz);
                             
                             (*token_cnt)--;
                         }
@@ -799,7 +825,17 @@ NodeMaster parse_meta_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size
                     }
                     break;
                 case EQUAL:
-                    // prase_expr
+                    {
+                        (*token_cnt)--;
+                        NodeMaster mmstack = parse_assignment(tokens, token_cnt, mem, memsz);
+                        // append it to the stack   
+                        mstacksz += sizeof(mmstack);
+                        mstack.UNION.Nodes.nodes = realloc(mstack.UNION.Nodes.nodes, mstacksz);
+                        mstack.UNION.Nodes.nodes[mstack.UNION.Nodes.nodeln] = mmstack;
+                        mstack.UNION.Nodes.nodeln++; 
+                        
+                        //token_cnt--;
+                    }
                     break;
             }
         
@@ -867,6 +903,7 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                     break;
                 case LBRACKET:
                     {
+                        (*token_cnt)--;
                         NodeMaster mmstack = parse_list_acc(tokens, token_cnt, mem, memsz);
                         
                         // append it to the stack       
@@ -911,8 +948,11 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                             
                             break;
                         }
+                    // might only need to be (NEXT_TOKEN_TYPE == EQUAL)
                     else if (NEXT_TOKEN_TYPE == EQUAL || NEXT_TOKEN_TYPE == ADD_EQ || NEXT_TOKEN_TYPE == SUB_EQ || NEXT_TOKEN_TYPE == STAR_EQ || NEXT_TOKEN_TYPE == DIV_EQ)
                         {
+                            printf("please just be here or something: %s\n", type_names[TOKEN_TYPE]);
+                            printf("please just be here or something: %s\n", token.stor);
                             NodeMaster mmstack = parse_assignment(tokens, token_cnt, mem, memsz);
                             
                             // append it to the stack       
@@ -922,7 +962,6 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                             mstack.UNION.Nodes.nodeln++;
                             
                             (*token_cnt)--;
-
                             break;
                         }
                     else if (NEXT_TOKEN_TYPE == DECIMAL)
@@ -991,7 +1030,17 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                     }
                     break;
                 case EQUAL:
-                    // prase_expr
+                    /*{
+                        (*token_cnt)--;
+                        NodeMaster mmstack = parse_assignment(tokens, token_cnt, mem, memsz);
+                        // append it to the stack   
+                        mstacksz += sizeof(mmstack);
+                        mstack.UNION.Nodes.nodes = realloc(mstack.UNION.Nodes.nodes, mstacksz);
+                        mstack.UNION.Nodes.nodes[mstack.UNION.Nodes.nodeln] = mmstack;
+                        mstack.UNION.Nodes.nodeln++; 
+                        
+                        //token_cnt--;
+                    }*/
                     break;
                 default:
                      (*token_cnt)++;
@@ -1259,7 +1308,7 @@ NodeMaster stack(List *tokens)
             //if (!memupdated) amem(&mem, &memsz, _tokens, ptoken_cnt);
             //else memupdated = false;
             
-            printf("going in token: %s %d\n", type_names[_tokens[token_cnt].type], token_cnt);
+            printf("going in token: %s %d\n", _tokens[token_cnt].stor, token_cnt);
             switch (TOKEN_TYPE)
             {
                 case IDENTIFIER:
@@ -1386,7 +1435,9 @@ NodeMaster stack(List *tokens)
                     // parse_expr
                     break;
                 case LBRACE:
+                    debugp("did it get out??");
                     NodeMaster _mstack = parse_scope(_tokens, ptoken_cnt, &mem, &memsz);
+                    debugp("did it leave the scope?");
                     
                     // append it to the stack       
                     stacksz += sizeof(_mstack);
@@ -1406,6 +1457,8 @@ NodeMaster stack(List *tokens)
                         _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
                         _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
                         _stack.UNION.Nodes.nodeln++; 
+                        
+                        token_cnt--;
                     }
                     break;
                 /*case SCOLON:
@@ -1417,7 +1470,7 @@ NodeMaster stack(List *tokens)
                         _stack.UNION.Nodes.nodeln++;
                     }
                     break;*/
-                    
+                case SCOLON:
                 default:
                     token_cnt++;
                     amem(&mem, &memsz, _tokens, ptoken_cnt);

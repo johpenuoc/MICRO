@@ -969,3 +969,23 @@ I have to track each bytecode command now for the jump command to know where to 
 I have implemented the jump command!
 
 I'm very hungry and have class soon, so I'm going to go, but that is some pretty decent work!
+
+### 11:24
+I will be implementing better tackling of multiple scenarios and stacks within conditions and whatnot. Essentially making it more robust.
+
+Continuing development.
+
+### 12:40
+I stumbled upon some bugs in the parser. I've patched them. It had problems with list accessing in conditions and scopes. I believe its completely fixed but unsure currently. When I go over everything to optimise, I will improve the current state of it and make it more readable and reliable. And, of course, any bugs left will be patched.
+
+### 12:59
+Okidokie. I've gotten loops to somewhat work in their conversion to bytecode, and I've patched some general bugs in the compiler, not to mention to pretty huge bugs in the parser. Nonetheless, this was mainly a patching session as it seems...
+
+### 14:06
+This took me ages, but I was patching SO many bugs in the parser... things like:
+
+var1 = link1.link2[5, 4] + link3[6];
+
+Anyways, it appears to work now!! IM RELEASED FROM MY PRISON! How well it's converted into bytecode... no idea! Because I've barely been developing that side of things! But I'll be checking it now.
+
+Continuing development. Or maybe I'll go grab lunch.

@@ -197,6 +197,7 @@ typedef struct
         int index;
         char *key;
         int keylistid;
+        
     } loc;
     
 } MEM;
