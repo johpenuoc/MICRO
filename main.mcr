@@ -1,8 +1,6 @@
-if (x > 5)
-    {
-        a += 1;
-    }
-else
-    {
-        b += 3;
-    }
+fn myfunc(arg)
+{
+    arg += 1;
+    
+    ret (arg);
+}

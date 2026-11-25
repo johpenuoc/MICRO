@@ -1138,3 +1138,10 @@ I'm logging off...
 I'm back. I'm going to implement that else statement now in bytecode.
 
 Continuing development.
+
+### 20:55
+I've implemented them. Next will be defining functions, I suppose?
+
+I'm thinking that we use different ByteStreams for functions and classes. We can then index them and, when called, we simply go to that index. It also means we don't have to worry about jumping to different lines; it simply pauses at the current bytecode address, goes to the respective bytestream function index, and executes that. Once completed, it resumes! Same for classes, too.
+
+Beginning development.

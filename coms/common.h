@@ -182,6 +182,14 @@ typedef struct
 
 typedef struct
 {
+    ByteStream *bytestream;
+    int len;
+    size_t size;
+     
+} ByteStreamIndex;
+
+typedef struct
+{
     enum _TYPE_ *types;
     int ln;
     size_t size;

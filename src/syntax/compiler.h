@@ -14,22 +14,22 @@ void agem(enum _TYPE_ atype, Genmem *gem);
 void agenm(NodeMaster node, NodeMaster *genm);
 void createLITERAL(NodeMaster *value_n, ByteStream *bs);
 
-void bytecode_listacc(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *accesses);
-void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_literal(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *linker_cnt);
-void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
-void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_not(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
-void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
-void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);//, Instruction *jumpcmd);
-void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
-void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
-void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement);
-void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement);
+void bytecode_listacc(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *accesses);
+void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_literal(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *linker_cnt);
+void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_not(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);//, Instruction *jumpcmd);
+void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
+void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
 
 ByteStream compile(NodeMaster *stack);
 

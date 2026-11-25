@@ -270,6 +270,14 @@ typedef struct
     
 } ByteStream;
 
+typedef struct
+{
+    ByteStream *bytestream;
+    int len;
+    size_t size;
+     
+} ByteStreamIndex;
+
 /*typedef struct __TAG
 {
     bool is_master;
