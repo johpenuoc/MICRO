@@ -1069,3 +1069,67 @@ Patching now.
 Nevermind, it was a printing error xD
 
 Logging off and going to grab some food.
+
+### 17:57
+I'm back and it's time to begin developing some bytecode for if-statements!
+
+### 20:24
+Idk why I thought that'd be exciting. Anyways, it's not 100% done but its somewhat working. Here:
+
+if (x > 5)
+    {
+        a += 1;
+    }
+else if (x < 5)
+    {
+        a += 2;
+    }
+else if (x > 15)
+    {
+        a += 2;
+    }
+becomes
+
+SCOPE_START
+LOAD x,
+PUSH
+5 INT,
+PUSH
+GREATER_THAN
+PUSH
+JUMP_IF_FALSE 7,
+SCOPE_START
+1 INT,
+PUSH
+STO a,  __ADDEQ__,
+SCOPE_END
+JUMP_IF_TRUE 27,
+LOAD x,
+PUSH
+5 INT,
+PUSH
+LESS_THAN
+PUSH
+JUMP_IF_FALSE 7,
+SCOPE_START
+2 INT,
+PUSH
+STO a,  __ADDEQ__,
+SCOPE_END
+JUMP_IF_TRUE 14,
+LOAD x,
+PUSH
+15 INT,
+PUSH
+GREATER_THAN
+PUSH
+JUMP_IF_FALSE 7,
+SCOPE_START
+2 INT,
+PUSH
+STO a,  __ADDEQ__,
+SCOPE_END
+JUMP_IF_TRUE 1,
+SCOPE_END
+
+I'm logging off...

@@ -28,6 +28,7 @@ void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, Node
 void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);//, Instruction *jumpcmd);
 void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
 void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
+void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement);
 
 ByteStream compile(NodeMaster *stack);
 

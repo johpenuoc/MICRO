@@ -18,6 +18,7 @@ void mbs_reset(ByteStream *bs);
 
 void astream(ByteStream *bs, Instruction isn);
 
+void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement);
 void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm);
 void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
 void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
@@ -68,7 +69,7 @@ void ai_stream(ByteStream *bs, Instruction ins)
     bs->stream[bs->streamln] = ins;
     bs->streamln++;
     
-    printf("cmd: %s\n", cmdt_types[ins.data.cmd.cmdt]);
+    //printf("cmd: %s\n", cmdt_types[ins.data.cmd.cmdt]);
 }
 /*
 STACK: [ASSIGNMENT]
@@ -1088,6 +1089,14 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
                     case LOOP:
                         bytecode_loop(&node_s, bs,  gem, genm);
                         break;
+                    case IF:
+                        int placeholder = 0;
+                        bytecode_if(&node_s, bs,  gem, genm, &placeholder);
+                        break;
+                    case ELSE:
+                        int placeholder2 = 0;
+                        bytecode_if(&node_s.UNION.Nodes.nodes[0], bs,  gem, genm, &placeholder2);
+                        break;
                     //case EXPRESSION:
                      //   traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm);
                     default:
@@ -1098,6 +1107,112 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
                 }
         }
     ai_stream(bs, scope_end);
+}
+/* if stack reference
+
+STACK: [IF]
+        NODE: [IF]----------->[if]
+        STACK: [CONDITION]
+                STACK: [EXPRESSION]
+                        STACK: [OPERATION]
+                                NODE: [GTHAN]-------->[>]
+                                NODE: [IDENTIFIER]--->[x]
+                                NODE: [NUMBER]------->[5]
+        STACK: [SCOPE]
+                STACK: [ASSIGNMENT]
+                        NODE: [ADD_EQ]------->[+=]
+                        NODE: [IDENTIFIER]--->[a]
+                        NODE: [NUMBER]------->[1]
+                        
+*/
+void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement)
+{
+    // an IF stack is always orientated like this
+    NodeMaster if_node = stack->UNION.Nodes.nodes[0];
+    NodeMaster condition = stack->UNION.Nodes.nodes[1];
+    NodeMaster scope = stack->UNION.Nodes.nodes[2];
+    
+    // we generate the condition
+    int pre = bs->streamln;
+    bytecode_condition(&condition, bs, gem, genm);
+    int curr_condition_length = bs->streamln - pre;
+    
+    // this one jumps to the next else-if statement
+    Instruction jump_forward = CMDcreate_isn(_JMP_IF_FALSE, "", __NOFLAG__);
+    ai_stream(bs, jump_forward);
+    int jiff_address = bs->streamln - 1;
+    
+    int buf = bs->streamln;
+    
+    // convert the scope into bytecode
+    traverse(&scope, bs, gem, genm);
+    
+    int curr_scope_length = bs->streamln - buf;
+    
+    // this is for any potential parent if-else statement
+    // that needs to know the length of this inner scope
+    *pre_ifelse_statement = curr_condition_length;
+    
+    address = bs->streamln - buf + 2;
+    char *cseq = malloc(sizeof(char)*(int)log10(address));
+    sprintf(cseq, "%d", address);
+    bs->stream[bs->streamln - (bs->streamln - buf) - 1].data.cmd.val = cseq;
+    
+    // this one jumps to either the else statement or after the if statement
+    Instruction jump_to_end = CMDcreate_isn(_JMP_IF_TRUE, "0", __NOFLAG__);
+    ai_stream(bs, jump_to_end);
+    int jift_address = bs->streamln - 1; 
+    printf("pre jift: %d %d\n", jift_address, jiff_address);
+    
+    // we check if there's a possible else or else-if statement
+    buf = bs->streamln;
+    int inner_scope_length = 0;
+    if (stack->utype == NODES)
+        {
+            int ln = stack->UNION.Nodes.nodeln;
+            for (int i = 0; i < ln; ++i)
+                {
+                    NodeMaster elseif_node = stack->UNION.Nodes.nodes[3 + i];
+                    if (elseif_node.utype == NODES)
+                        {
+                            if (elseif_node.UNION.Nodes.nodes[0].UNION.Nodes.type == IF)
+                                {
+                                    bytecode_if(&elseif_node.UNION.Nodes.nodes[0], bs, gem, genm, &inner_scope_length);
+                                }
+                            else 
+                                {
+                                    // hit an else-only block
+                                }
+                        }
+                }
+        }  
+        
+    // if theres another if statement or else statement, our
+    // jump command jumps to it if the current if-condition
+    // is evaluated as false
+    // 2 is the *magic* number
+    /*char *cseq2 = malloc(sizeof(char)*(int)log10(curr_scope_length + 2));
+    debugp("fuck off1");
+    sprintf(cseq2, "%d", curr_scope_length + 2);
+    debugp("fuck off2");
+    // its two beacuse we dont want to edit the jump_to_end cmd,
+    // we want to edit the one that evaulated if the above if
+    // statement is false. so we go to the next if-else statement
+    bs->stream[bs->streamln - (bs->streamln - buf) - 1 - curr_scope_length].data.cmd.val = cseq2;
+    debugp("fuck off3");*/
+    
+    // if the if-statement is evaluated as true, then we need
+    // to jump to the very end and skip over all of the other
+    // if-else statements, which is what this achieves
+    int total_jump = bs->streamln - buf + 1;
+    debugp("fuck off4");
+    char *cseq3 = malloc(sizeof(char)*(int)log10(total_jump));
+    debugp("fuck off5");
+    printf("total jump %d\n", total_jump);
+    sprintf(cseq3, "%d", total_jump);
+    debugp("fuck off6");
+    bs->stream[bs->streamln - (bs->streamln - buf) - 1].data.cmd.val = cseq3;
+    debugp("fuck off7");
 }
 
 ByteStream compile(NodeMaster *stack)
@@ -1132,11 +1247,11 @@ ByteStream compile(NodeMaster *stack)
                      //printf(" %s, ", isn.data.cmd.val);
                      if (isn.data.cmd.val != "") printf(" %s, ", isn.data.cmd.val);
                      if (isn.data.cmd.flag != __NOFLAG__) printf(" %s, ", flags[isn.data.cmd.flag]);
-                     else printf("\n");
-                     
-                     if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf("\n");
+                     //else printf("\n");
+                     printf("\n");
+                     //if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf("\n");
                      //printf("\n\n");
-                     else if (cmd == _SCOPE_START || cmd == _SCOPE_END || cmd == _JMP_IF_TRUE || cmd == _JMP_IF_FALSE || cmd == _STO_SEQ || cmd == _PROVIDE) printf("\n");
+                     //else if (cmd == _SCOPE_START || cmd == _SCOPE_END || cmd == _JMP_IF_TRUE || cmd == _JMP_IF_FALSE || cmd == _STO_SEQ || cmd == _PROVIDE) printf("\n");
                  }
              else if (isn.isnt == __MEM)
                  {
@@ -1149,6 +1264,8 @@ ByteStream compile(NodeMaster *stack)
                      else if (isn.data.con.datat == _STRING_) printf("%s ", (char *)p);
                      if (isn.data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
                      printf("%s, ", data_types[isn.data.con.datat]);
+                     printf("\n");
+                     
                      
                      //printf("\n\n");
                  } 

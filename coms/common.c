@@ -20,7 +20,9 @@ enum _FLAG_
 {
     __CONSUME__,
      
-    __ADDEQ__, __SUBEQ__, __MULEQ__, __DIVEQ__
+    __ADDEQ__, __SUBEQ__, __MULEQ__, __DIVEQ__,
+    
+    __IFELSE__
 };
 const char *flags[] = 
 {
@@ -28,7 +30,9 @@ const char *flags[] =
     
     "__CONSUME__", 
     
-    "__ADDEQ__", "__SUBEQ__", "__MULEQ__", "__DIVEQ__"
+    "__ADDEQ__", "__SUBEQ__", "__MULEQ__", "__DIVEQ__",
+    
+    "__IFELSE__"
 };
 
 
