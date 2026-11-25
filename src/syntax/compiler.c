@@ -1001,18 +1001,18 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
     // the number '3' and '4' that are used are to offset the
     // jump commands so that they dont hit the _START_SCOPE 
     // and _END_SCOPE
-    address = bs->streamln - buf - 3;
+    address = bs->streamln - buf + 2;
 
-    char *cseq = malloc(sizeof(char)*(int)log10(address));
+    char *cseq = malloc(sizeof(char)*(int)log10(address - 3));
     // PROBLEM HERE
-    sprintf(cseq, "%d", address);
+    sprintf(cseq, "%d", address - 3);
     Instruction jump_backward = CMDcreate_isn(_JMP_IF_TRUE, cseq);
     ai_stream(bs, jump_backward);
     
     // we need to retrospecively go back and alter _JMP_IF_FALSE so
     // it knows how many lines, relatively, to jump forward
-    char *cseq2 = malloc(sizeof(char)*(int)log10(address + 4));
-    sprintf(cseq2, "%d", address + 4);
+    char *cseq2 = malloc(sizeof(char)*(int)log10(address));
+    sprintf(cseq2, "%d", address);
     bs->stream[bs->streamln - (bs->streamln - buf) - 1].data.cmd.val = cseq2;
     
     // JMP_IF_FALSE (jump forward if the condition isnt true to begin with)
@@ -1119,6 +1119,8 @@ ByteStream compile(NodeMaster *stack)
                      else if (isn.data.con.datat == _STRING_) printf("%s ", (char *)p);
                      if (isn.data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
                      printf("%s, ", data_types[isn.data.con.datat]);
+                     
+                     printf("\n\n");
                  } 
              //printf("\n"); 
         }

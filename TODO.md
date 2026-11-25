@@ -989,3 +989,8 @@ var1 = link1.link2[5, 4] + link3[6];
 Anyways, it appears to work now!! IM RELEASED FROM MY PRISON! How well it's converted into bytecode... no idea! Because I've barely been developing that side of things! But I'll be checking it now.
 
 Continuing development. Or maybe I'll go grab lunch.
+
+### 15:23
+I'm back, but my laptop is on 14% and the only plug available is by some girl... I may have to move rapidly.
+
+This mustn't impede development and progress.
