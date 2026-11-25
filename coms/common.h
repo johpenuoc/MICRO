@@ -30,9 +30,11 @@ enum _COMMAND_
     
     _LOAD, _LOAD_SEQ,
     
-    _SCOPE_START, _SCOPE_END,   
+    _SCOPE_START, _SCOPE_END,
     
-    _INVERSE, 
+    _INVERSE, _GT, _LT, _GTET, _LTET, _EQUIV,
+    
+    _JMP_IF_TRUE, _JMP_IF_FALSE,
 };
 
 

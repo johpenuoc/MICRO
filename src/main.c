@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     char *s;
     printn(&_stack, &depth, s);
     
-    //ByteStream ir = compile(&_stack);
+    ByteStream ir = compile(&_stack);
     
     // =======================================
     

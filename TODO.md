@@ -955,3 +955,17 @@ On github, it won't format so well. But the data and information is, indeed, pre
 How should an if-statement be represented in bytecode..? I think I will have to introduce a new command: JUMP, but specifically whether a certain condition is true or not. This will also allow us to tackle loops, which will be the first order of things.
 
 Did a little more than I meant... going to bed now, for real.
+
+## 25/11/26
+### 9:45
+I've been developing for near-enough the past 45 minutes. Loops are nearly complete for conversion into bytecode, however I need to implement the JUMP command next, which will complete the loop-to-bytecode conversion!
+
+Continuing development.
+
+### 9:49
+I have to track each bytecode command now for the jump command to know where to actually jump to.
+
+### 10:15
+I have implemented the jump command!
+
+I'm very hungry and have class soon, so I'm going to go, but that is some pretty decent work!

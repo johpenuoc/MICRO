@@ -29,7 +29,9 @@ enum _COMMAND_
     
     _SCOPE_START, _SCOPE_END,
     
-    _INVERSE,  
+    _INVERSE, _GT, _LT, _GTET, _LTET, _EQUIV,
+    
+    _JMP_IF_TRUE, _JMP_IF_FALSE,
 };
 const char *cmdt_types[] = {
     "ADD", "SUB", "MUL", "DIV",
@@ -42,7 +44,9 @@ const char *cmdt_types[] = {
     
     "SCOPE_START", "SCOPE_END",
     
-    "INVERSE",
+    "INVERSE", "GREATER_THAN", "LESS_THAN", "GT_EQUAL", "LT_EQUAL", "EQUIVALENT",
+    
+    "JUMP_IF_TRUE", "JUMP_IF_FALSE"
 };
 
 

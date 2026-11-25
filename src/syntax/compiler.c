@@ -6,6 +6,12 @@
 
 #include "coms/common.h"
 
+// this is used purely for tracking commands.
+// it is used in the JUMP commands to tell it
+// where to jump to (relative) based on a 
+// certain condition
+int address = 0;
+
 
 ByteStream mbs_init();
 void mbs_reset(ByteStream *bs);
@@ -428,6 +434,91 @@ void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMast
         }
 }
 
+void bytecode_operation(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
+{
+    NodeMaster operation = stack->UNION.Nodes.nodes[0];
+    NodeMaster condition1 = stack->UNION.Nodes.nodes[1];
+    NodeMaster condition2 = stack->UNION.Nodes.nodes[2];
+    
+    enum _TYPE_ oper_type = (operation.utype == NODES) ? operation.UNION.Nodes.type : operation.UNION.Node.type;
+    enum _TYPE_ cond1_type = (condition1.utype == NODES) ? condition1.UNION.Nodes.type : condition1.UNION.Node.type; 
+    enum _TYPE_ cond2_type = (condition2.utype == NODES) ? condition2.UNION.Nodes.type : condition2.UNION.Node.type;
+    
+    switch (cond1_type)
+        {
+            case ID_LINKER:
+                bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
+                
+                char *var = "__CONSUME__";
+                Instruction variable = CMDcreate_isn(_LOAD, var);
+                
+                break;
+            case NUMBER:
+            case IDENTIFIER:
+                bytecode_literal(&condition1, bs, gem, genm);
+                break;
+            case LIST_ACC:
+                break;
+            case FUNCTION_CALL:
+                break;  
+        }
+    
+    switch (cond2_type)
+        {
+            case ID_LINKER:
+                bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
+                
+                char *var = "__CONSUME__";
+                Instruction variable = CMDcreate_isn(_LOAD, var);
+                
+                break;
+            case NUMBER:
+            case IDENTIFIER:
+                bytecode_literal(&condition2, bs, gem, genm);
+                break;
+            case LIST_ACC:
+                break;
+            case FUNCTION_CALL:
+                break; 
+        }
+        
+    switch (oper_type)
+        {
+            case ADD:
+                Instruction add = CMDcreate_isn(_ADD, "");
+                ai_stream(bs, add);
+                {
+                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    ai_stream(bs, push);
+                }
+                break;
+            case SUB:
+                Instruction sub = CMDcreate_isn(_SUB, "");
+                ai_stream(bs, sub);
+                {
+                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    ai_stream(bs, push);
+                }
+                break;
+            case STAR:
+                Instruction mul = CMDcreate_isn(_MUL, "");
+                ai_stream(bs, mul);
+                {
+                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    ai_stream(bs, push);
+                }
+                break;
+            case DIV:
+                Instruction div = CMDcreate_isn(_DIV, "");
+                ai_stream(bs, div);
+                {
+                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    ai_stream(bs, push);
+                }
+                break;
+        }
+}
+
 void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm)
 {
     // this loops through all of the nodes in an
@@ -511,6 +602,9 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                         sto_type = _STO_SEQ;
                                         sto_data = subnode.UNION.Nodes.nodeln;
                                         break;
+                                    case OPERATION:
+                                        bytecode_operation(&subnode, bs,  gem, genm);
+                                        break;
                                 }     
                         }
                     // i dont believe this is necessarily needed as whenever assigning
@@ -533,39 +627,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
             // VALUE, LIKE [name = "john"] OR [number = 10.5]
             // ===============================================================
             
-            char *value_s = value_n.UNION.Node.stor;
-            Casted implicit_cast = convert(value_s, type(value_s));
-            
-            Instruction literal;
-            switch (implicit_cast.type)
-                {
-                    case _INT_:
-                        int *p = malloc(sizeof(implicit_cast.data.inum));
-                        *p = implicit_cast.data.inum;
-                        literal = CONcreate_isn(_INT_, (void *)p);
-                        break;
-                    case _FLOAT_:
-                        float *fp = malloc(sizeof(implicit_cast.data.fnum));
-                        *fp = implicit_cast.data.fnum;
-                        literal = CONcreate_isn(_FLOAT_, (void *)fp);
-                        break;
-                    case _STRING_:
-                        char *sp = malloc(sizeof(char) * strlen(implicit_cast.data.string));
-                        strcpy(sp, implicit_cast.data.string);
-                        literal = CONcreate_isn(_STRING_, (void *)sp);
-                        break;
-                    default:
-                        debugp("hit default");
-                        break;
-                }
-            // append the literal to the stream
-            ai_stream(bs, literal);
-            
-            // append the PUSH command to put the literal onto the stack
-            Instruction push = CMDcreate_isn(_PUSH, "");
-            
-            // append the push command to the stream 
-            ai_stream(bs, push);
+            bytecode_literal(&value_n, bs, gem, genm);
         }
         
     // we do this one afterwards so that, in bytecode,
@@ -654,6 +716,9 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                     break;
                             }
                         break;
+                    case OPERATION:
+                        bytecode_operation(&assig_n, bs,  gem, genm);
+                        break;
                     default:
                         perror("No NODE type exists");
                         exit(EXIT_FAILURE);
@@ -723,8 +788,80 @@ void bytecode_not(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *g
     bytecode_condition(node_s, bs, gem, genm);
     
     // we inverse whatever was calculated before it
-    Instruction inverse = CMDcreate_isn(_INVERSE, "");
+    Instruction inverse = CMDcreate_isn(_INVERSE, "__CONSUME__");
     ai_stream(bs, inverse);
+    
+    Instruction push = CMDcreate_isn(_PUSH, "");
+    ai_stream(bs, push);
+}
+
+void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
+{
+    NodeMaster operation = stack->UNION.Nodes.nodes[0];
+    NodeMaster condition1 = stack->UNION.Nodes.nodes[1];
+    NodeMaster condition2 = stack->UNION.Nodes.nodes[2];
+    
+    enum _TYPE_ oper_type = (operation.utype == NODES) ? operation.UNION.Nodes.type : operation.UNION.Node.type;
+    enum _TYPE_ cond1_type = (condition1.utype == NODES) ? condition1.UNION.Nodes.type : condition1.UNION.Node.type; 
+    enum _TYPE_ cond2_type = (condition2.utype == NODES) ? condition2.UNION.Nodes.type : condition2.UNION.Node.type;
+    
+    switch (cond1_type)
+        {
+            case ID_LINKER:
+                bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
+                
+                char *var = "__CONSUME__";
+                Instruction variable = CMDcreate_isn(_LOAD, var);
+                
+                break;
+            case NUMBER:
+            case IDENTIFIER:
+                bytecode_literal(&condition1, bs, gem, genm);
+                break;
+            case LIST_ACC:
+                break;
+            case FUNCTION_CALL:
+                break;  
+        }
+    
+    switch (cond2_type)
+        {
+            case ID_LINKER:
+                bytecode_IDlinker_func(&condition1.UNION.Nodes.nodes[0], bs, gem, genm);
+                
+                char *var = "__CONSUME__";
+                Instruction variable = CMDcreate_isn(_LOAD, var);
+                
+                break;
+            case NUMBER:
+            case IDENTIFIER:
+                bytecode_literal(&condition2, bs, gem, genm);
+                break;
+            case LIST_ACC:
+                break;
+            case FUNCTION_CALL:
+                break; 
+        }
+        
+    switch (oper_type)
+        {
+            case GTHAN:
+                Instruction gt = CMDcreate_isn(_GT, "");
+                ai_stream(bs, gt);   
+                {
+                    Instruction push = CMDcreate_isn(_PUSH, "");
+                    ai_stream(bs, push);
+                }
+                break;
+            case LTHAN:
+                break;
+            case GTHAN_OR_EQUAL_TO:
+                break;
+            case LTHAN_OR_EQUAL_TO:
+                break;
+            case EQUIVALENT:
+                break;
+        }
 }
 
 void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
@@ -733,20 +870,27 @@ void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMas
     // out, starting with the most inner parts first.
     // we will achieve this with recursion, as usual 
     
-    NodeMaster node = stack->UNION.Nodes.nodes[0];
-    
-    enum _TYPE_ node_type = (node.utype == NODES) ? node.UNION.Nodes.type : node.UNION.Node.type; 
-    switch (node_type)
+    for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
-            case NOT:
-                // if its a NOT then we know for a fact that it has
-                // child nodes, so we can safely use Nodes.nodes...
-                bytecode_not(node.UNION.Nodes.nodes, bs, gem, genm);
-                break;
-            case EXPRESSION:
-                break;
-            case OPERATION:
-                break;
+            NodeMaster node = stack->UNION.Nodes.nodes[i];
+            
+            enum _TYPE_ node_type = (node.utype == NODES) ? node.UNION.Nodes.type : node.UNION.Node.type; 
+            switch (node_type)
+                {
+                    // NODES cases
+                    case NOT:
+                        bytecode_condition(&node, bs,  gem, genm);
+                        // if its a NOT then we know for a fact that it has
+                        // child nodes, so we can safely use Nodes.nodes...
+                        bytecode_not(node.UNION.Nodes.nodes, bs, gem, genm);
+                        break;
+                    case EXPRESSION:
+                        bytecode_condition(&node, bs,  gem, genm);
+                        break;
+                    case OPERATION:
+                        bytecode_subcondition(&node, bs, gem, genm);
+                        break;
+                }   
         }
 }
 
@@ -758,17 +902,47 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
     //Instruction jump_cmd_condition;
  
     NodeMaster condition_nodes = stack->UNION.Nodes.nodes[0];   
-    bytecode_condition(&condition_nodes, bs, gen, genm);//, &jump_cmd_condition);
+    bytecode_condition(&condition_nodes, bs, gem, genm);//, &jump_cmd_condition);
     // if the condition is true, we jump to the next line,
     // allowing us to evaluate the if-statement scope
     // if false, we jump past it. if theres an else if or
     // just an else, we jump to that evaulation
-     
-    NodeMaster scope_nodes = stack->UNION.Nodes.nodes[1];
     
     // after evaluating the if-scope, we take its total length
     // and then use that to inform the jump_cmd_condition how
     // far to jump ahead if the condition is evaluated as false
+    
+    // we get the total length of the scope so that we can inform
+    // the JUMP command how far back, relatively, to go depending
+    // on the condition
+    
+    Instruction jump_forward = CMDcreate_isn(_JMP_IF_FALSE, "");
+    ai_stream(bs, jump_forward);
+    
+    int buf = bs->streamln;
+     
+    NodeMaster scope_nodes = stack->UNION.Nodes.nodes[1];
+    traverse(&scope_nodes, bs,  gem, genm);
+    
+    // the number '3' and '4' that are used are to offset the
+    // jump commands so that they dont hit the _START_SCOPE 
+    // and _END_SCOPE
+    address = bs->streamln - buf - 3;
+    
+    char *cseq = malloc(sizeof(char)*(int)log10(address));
+    sprintf(cseq, "%d", address);
+    Instruction jump_backward = CMDcreate_isn(_JMP_IF_TRUE, cseq);
+    ai_stream(bs, jump_backward);
+    
+    // we need to retrospecively go back and alter _JMP_IF_FALSE so
+    // it knows how many lines, relatively, to jump forward
+    char *cseq2 = malloc(sizeof(char)*(int)log10(address + 4));
+    sprintf(cseq2, "%d", address + 4);
+    bs->stream[bs->streamln - (bs->streamln - buf) - 1].data.cmd.val = cseq2;
+    
+    // JMP_IF_FALSE (jump forward if the condition isnt true to begin with)
+    // until-loop scope
+    // JMP_IF_TRUE (jump backwards if the condition is still true after looping)
 }
 
 void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
@@ -806,8 +980,11 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm)
                     case SCOPE:                       
                         traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm);
                         break;
+                    case LOOP:
+                        bytecode_loop(&node_s, bs,  gem, genm);
+                        break;
                     default:
-                        perror("Hit a default. Line 754 at the time of 24/11.");
+                        perror("Hit a default");
                         exit(EXIT_FAILURE);
                         break;
                 }
@@ -848,7 +1025,8 @@ ByteStream compile(NodeMaster *stack)
                      else printf("\n");
                      
                      if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf("\n");
-                     //else if (cmd == _SCOPE_START || cmd == _SCOPE_END) printf("\n");
+                     //printf("\n\n");
+                     else if (cmd == _SCOPE_START || cmd == _SCOPE_END || cmd == _JMP_IF_TRUE || cmd == _JMP_IF_FALSE) printf("\n");
                  }
              else if (isn.isnt == __MEM)
                  {
