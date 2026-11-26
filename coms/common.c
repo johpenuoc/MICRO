@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-char *ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_\"!=+-/*^&|@~";
+char *ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_\"!=+-/*^&|@~<>";
 char *TERM = "(){}[],.:;+-*/=^><!?";
 char *MODE = "\"#";
 
@@ -28,7 +28,7 @@ enum _FLAG_
     
     __FNCALL__, __CLCALL__, __CLFNCALL__, __INHERITS__,
     
-    __GIVETOCLASS__
+    __GIVETOCLASS__, __CLASSASSIGN__
     
 };
 const char *flags[] = 
@@ -43,7 +43,7 @@ const char *flags[] =
     
     "__FNCALL__", "__CLCALL__", "__CLFNCALL__", "__INHERITS__",
     
-    "__GIVETOCLASS__",
+    "__GIVETOCLASS__", "__CLASSASSIGN__"
 };
 
 
@@ -63,7 +63,7 @@ enum _COMMAND_
     
     _JUMP_IF_TRUE, _JUMP_IF_FALSE, _JUMP,
     
-    _CLASS_INIT,
+    _CLASS_INIT
 };
 const char *cmdt_types[] = 
 {
@@ -81,7 +81,7 @@ const char *cmdt_types[] =
     
     "JUMP_IF_TRUE", "JUMP_IF_FALSE", "JUMP",
     
-    "CLASS_INIT", "HASH_OBJS"
+    "CLASS_INIT"
 };
 
 

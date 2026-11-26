@@ -1325,3 +1325,23 @@ With the way I've designed it, unfortunately, when you attempt to get the name o
 Apart from that, it is all working! Now I just need to incorporate class calls, but that is easy enough!
 
 Continuing development.
+
+### 21:23
+So, you can now initiate functions! Like this:
+
+id := MyClass; ! Pretty cool! Here's what it will look like:
+
+SCOPE_START
+CLASS_INIT Something,
+STO a,  CLASSASSIGN,
+SCOPE_END
+
+Which is generated from
+
+a := Something;
+
+Nice!
+
+Probably gonna log off... BUT I THINK THE BYTECODE TRANSLATION IS 98% DONE!!! IF NOT 100% DONE! But I know there are probably tens of bugs and whatnot. But it is converting! Honestly surprised I got this far. I haven't used AI, and I used stackoverflow less than 5 times. Neither have I followed a tutorial! I read an article on tokenization, but that's mostly it. I probably should've educated myself better, but at least it means that this is truly mine, I suppose.
+
+Gonna log off now.

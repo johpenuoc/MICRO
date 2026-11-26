@@ -241,6 +241,7 @@ List tokenize(FILE *file)
                     else if (strcmp(curr, ">=") == 0) tokens[token_cnt - 1].type = GTHAN_OR_EQUAL_TO;
                     else if (strcmp(curr, "<=") == 0) tokens[token_cnt - 1].type = LTHAN_OR_EQUAL_TO;
                     else if (strcmp(curr, "!=") == 0) tokens[token_cnt - 1].type = NOT_EQUAL_TO;
+                    else if (strcmp(curr, ":=") == 0) tokens[token_cnt - 1].type = CLASS;
                     
                     else
                         {
@@ -313,6 +314,8 @@ List tokenize(FILE *file)
     combine_tokens(tokens, token_cnt_ptr, STAR, EQUAL, STAR_EQ);
     
     combine_tokens(tokens, token_cnt_ptr, COLON, COLON, INHERIT);
+    
+    combine_tokens(tokens, token_cnt_ptr, COLON, EQUAL, CLASS);
     
         
     

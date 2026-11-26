@@ -29,6 +29,7 @@ void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, Nod
 void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *linker_cnt);
 void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_class_init(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 
 Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val, enum _FLAG_ _flag)
 {
@@ -1160,6 +1161,9 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
                         debugp("hit a class defintion");
                         bytecode_classdef(&node_s, bs,  gem, genm, bsi);
                         break;
+                    case CLASS:
+                        bytecode_class_init(&node_s, bs,  gem, genm, bsi);
+                        break;
                     //case EXPRESSION:
                      //   traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm, bsi);
                     default:
@@ -1556,6 +1560,19 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
     bsi->bytestream[bsi->len] = classbs;
     
     bsi->len++;  
+}
+
+void bytecode_class_init(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
+{
+    char *class_name;
+    class_name = strdup(stack->UNION.Nodes.nodes[1].UNION.Node.stor);
+    Instruction init = CMDcreate_isn(_CLASS_INIT, class_name, __NOFLAG__);
+    ai_stream(bs, init);
+    
+    char *id_name;
+    id_name = strdup(stack->UNION.Nodes.nodes[0].UNION.Node.stor);
+    Instruction assig = CMDcreate_isn(_STO, id_name, __CLASSASSIGN__);
+    ai_stream(bs, assig);
 }
 
 ByteStream compile(NodeMaster *stack)

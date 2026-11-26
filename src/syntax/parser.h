@@ -22,6 +22,7 @@ NodeMaster parse_return(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *
 NodeMaster parse_meta_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
 NodeMaster parse_metadata(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
 NodeMaster parse_class(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
+NodeMaster parse_class_init(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
 
 NodeMaster stack(List *tokens);
 

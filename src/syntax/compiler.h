@@ -37,6 +37,7 @@ void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *ge
 void bytecode_fndef_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_class_init(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 
 ByteStream compile(NodeMaster *stack);
 

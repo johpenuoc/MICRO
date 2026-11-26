@@ -33,7 +33,7 @@ enum _FLAG_
     
     __FNCALL__, __CLCALL__, __CLFNCALL__, __INHERITS__,
     
-    __GIVETOCLASS__
+    __GIVETOCLASS__, __CLASSASSIGN__
     
 };
 

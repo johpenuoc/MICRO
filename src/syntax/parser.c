@@ -22,6 +22,7 @@ NodeMaster parse_IDlinker(Token *tokens, int *token_cnt, NodeMaster *mem, size_t
 NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
 NodeMaster parse_meta_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
 NodeMaster parse_metadata(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
+NodeMaster parse_class_init(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz);
 
 // save to mstack
 void sto_mstack(NodeMaster *mstack, size_t *mstacksz, NodeMaster node_s)
@@ -177,8 +178,6 @@ NodeMaster parse_expr(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *me
                     mmstack.UNION.Nodes.nodes = NULL;
                     mmstack.UNION.Nodes.nodeln = 0;
                     mmstack.UNION.Nodes.type = OPERATION;
-                    debugp("HIT OPERATION");
-                    printf("OPERATION token type: %s\n", type_names[token.type]);
                     
                     // fetch the previous token from memory
                     NodeMaster prev_token = mem->UNION.Nodes.nodes[mem->UNION.Nodes.nodeln - 1];
@@ -416,7 +415,6 @@ NodeMaster parse_func(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *me
 NodeMaster parse_IDlinker(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz)
 {
     Token token = tokens[*token_cnt];
-    printf("idlinker token: %s\n", tokens[*token_cnt].stor);
     
     // mstack --> ministack, like a branch in a tree 
     size_t mstacksz = 0;
@@ -962,6 +960,17 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                             (*token_cnt)--;
                             break;
                         }
+                    else if (NEXT_TOKEN_TYPE == CLASS)
+                        {
+                            NodeMaster mmstack = parse_class_init(tokens, token_cnt, mem, memsz);
+                            
+                            umem(mem, mmstack, memsz);
+                            
+                            mstacksz += sizeof(mmstack);
+                            mstack.UNION.Nodes.nodes = realloc(mstack.UNION.Nodes.nodes, mstacksz);
+                            mstack.UNION.Nodes.nodes[mstack.UNION.Nodes.nodeln] = mmstack;
+                            mstack.UNION.Nodes.nodeln++;
+                        }
                     else if (NEXT_TOKEN_TYPE == DECIMAL)
                         {
                             NodeMaster mmstack = parse_IDlinker(tokens, token_cnt, mem, memsz);
@@ -1281,6 +1290,44 @@ NodeMaster parse_class(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
     return mstack;
 }
 
+NodeMaster parse_class_init(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *memsz)
+{
+    size_t mstacksz = 0;
+    NodeMaster mstack;
+    mstack.utype = NODES;
+    mstack.UNION.Nodes.nodes = NULL;
+    mstack.UNION.Nodes.nodeln = 0;
+    mstack.UNION.Nodes.type = CLASS;
+    
+    printf("curr token: %s\n", type_names[tokens[*token_cnt].type]);
+    
+    debugp("here");
+    NodeMaster idname;
+    idname.utype = NODE;
+    debugp("here");
+    idname.UNION.Node.type = tokens[*token_cnt].type;
+    debugp("here");
+    printf(">> %s\n", tokens[*token_cnt].stor);
+    _strcpy(&idname, tokens[*token_cnt].stor);
+    debugp("here");
+    sto_mstack(&mstack, &mstacksz, idname);
+    debugp("here");
+    // its 2 cus we're skipping over ':='
+    (*token_cnt) += 2;
+    debugp("here");
+    // class name
+    char *class_name = tokens[*token_cnt].stor;
+    NodeMaster class;
+    class.utype = NODE;
+    class.UNION.Node.type = tokens[*token_cnt].type;
+    _strcpy(&class, tokens[*token_cnt].stor);
+    sto_mstack(&mstack, &mstacksz, class);
+    debugp("here");
+    (*token_cnt)++;
+    
+    return mstack;
+}
+
 NodeMaster stack(List *tokens)
 {
     Token *_tokens = (Token *)tokens->element;
@@ -1397,6 +1444,19 @@ NodeMaster stack(List *tokens)
                             _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
                             _stack.UNION.Nodes.nodeln++;
                         }
+                    else if (NEXT_TOKEN_TYPE == CLASS)
+                        {
+                            NodeMaster mstack = parse_class_init(_tokens, ptoken_cnt, &mem, &memsz);
+                            // append it to the stack   
+                            stacksz += sizeof(mstack);
+                            _stack.UNION.Nodes.nodes = realloc(_stack.UNION.Nodes.nodes, stacksz);
+                            _stack.UNION.Nodes.nodes[_stack.UNION.Nodes.nodeln] = mstack;
+                            _stack.UNION.Nodes.nodeln++;
+                            
+                            //token_cnt++;
+                            
+                            printf("curr token: %s\n", _tokens[token_cnt].stor);
+                        }
                     break;
                 case UNTIL:
                     {
@@ -1448,9 +1508,7 @@ NodeMaster stack(List *tokens)
                     // parse_expr
                     break;
                 case LBRACE:
-                    debugp("did it get out??");
                     NodeMaster _mstack = parse_scope(_tokens, ptoken_cnt, &mem, &memsz);
-                    debugp("did it leave the scope?");
                     
                     // append it to the stack       
                     stacksz += sizeof(_mstack);
