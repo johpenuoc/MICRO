@@ -58,6 +58,8 @@ enum _COMMAND_
     _INVERSE, _GT, _LT, _GTET, _LTET, _EQUIV,
     
     _JUMP_IF_TRUE, _JUMP_IF_FALSE, _JUMP,
+    
+    _CLASS_INIT
 };
 const char *cmdt_types[] = 
 {
@@ -73,7 +75,9 @@ const char *cmdt_types[] =
     
     "INVERSE", "GREATER_THAN", "LESS_THAN", "GT_EQUAL", "LT_EQUAL", "EQUIVALENT",
     
-    "JUMP_IF_TRUE", "JUMP_IF_FALSE", "JUMP"
+    "JUMP_IF_TRUE", "JUMP_IF_FALSE", "JUMP",
+    
+    "CLASS_INIT"
 };
 
 

@@ -49,7 +49,9 @@ enum _COMMAND_
     
     _INVERSE, _GT, _LT, _GTET, _LTET, _EQUIV,
     
-    _JUMP_IF_TRUE, _JUMP_IF_FALSE, _JUMP
+    _JUMP_IF_TRUE, _JUMP_IF_FALSE, _JUMP,
+    
+    _CLASS_INIT
 };
 
 

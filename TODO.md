@@ -1176,3 +1176,6 @@ That will be next up for development. However, I'm going to take a small break.
 
 ### 15:01
 I'm back! Time to begin developing again.
+
+### 15:39
+Gotten a decent start on classes, I think.

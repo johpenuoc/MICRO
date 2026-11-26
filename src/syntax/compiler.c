@@ -1389,12 +1389,10 @@ void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster 
     
     // first we make room in the 'bsi' so that we can append
     // another function's bytecode to it.
-    debugp("here1");
     NodeMaster fndef = stack->UNION.Nodes.nodes[0];
     char *namefn = fndef.UNION.Nodes.nodes[0].UNION.Node.stor;
     NodeMaster args = fndef.UNION.Nodes.nodes[1];
     NodeMaster scope = stack->UNION.Nodes.nodes[1];
-    debugp("here2");
     // we want to copy whats into the stack into the
     // arguments, as they have been renamed
     ByteStream fnbs; 
@@ -1407,9 +1405,7 @@ void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster 
     
     // load in the scope
     //printf("idk mannn %s\n", type_names[scope.UNION.Nodes.type]);
-    debugp("going into traverse");
     traverse(&scope, &fnbs, gem, genm, bsi);
-    debugp("here3");
     
     // allocate room in the bsi for the fn-bytestream
     bsi->size += sizeof(fnbs);
@@ -1425,20 +1421,99 @@ void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster 
     bsi->len++;  
 }
 
+/* for reference, again again, obv
+
+STACK: [DEF_CLS]
+        NODE: [IDENTIFIER]--->[Something]
+        STACK: [METADATA]
+                NODE: [INIT]--------->[_init]
+                STACK: [META_SCOPE]
+                        STACK: [ID_LINKER]
+                                STACK: [ID_LINKER]
+                                        NODE: [DECIMAL]------>[.]
+                                        NODE: [IDENTIFIER]--->[this]
+                                        NODE: [IDENTIFIER]--->[obj1]
+                        STACK: [ID_LINKER]
+                                STACK: [ID_LINKER]
+                                        NODE: [DECIMAL]------>[.]
+                                        NODE: [IDENTIFIER]--->[this]
+                                        NODE: [IDENTIFIER]--->[obj2]
+        STACK: [SCOPE]
+                STACK: [DEF_FN]
+                        STACK: [FUNCTION_CALL]
+                                NODE: [IDENTIFIER]--->[change_obj1]
+                                STACK: [ARGUMENTS]
+                                        STACK: [EXPRESSION]
+                                                NODE: [IDENTIFIER]--->[change_to]
+                        STACK: [SCOPE]
+                                STACK: [ASSIGNMENT]
+                                        NODE: [EQUAL]-------->[=]
+                                        STACK: [ID_LINKER]
+                                                STACK: [ID_LINKER]
+                                                        NODE: [DECIMAL]------>[.]
+                                                        NODE: [IDENTIFIER]--->[this]
+                                                        NODE: [IDENTIFIER]--->[obj1]
+                                        NODE: [IDENTIFIER]--->[change_to]
+                                                
+*/
+
 void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
 {
-    char *class_name = stack->UNION.Nodes.nodes[0];
-    NodeMaster metadata_nodes;
-    char *inherit_from;
-    if (stack->UNION.Nodes.nodes[1].UNION.Nodes.type == INHERITS)
-        {
-            inherit_from = strdup(stack->UNION.Nodes.nodes[1].UNION.Node.stor, inherit_from);
-        }
-    else
-        {
-            metadata_or_inherit_nodes = stack->UNION.Nodes.nodes[1];
-        }
+    ByteStream classbs; 
+    classbs.stream = NULL;
+    classbs.streamln = 0;
+    classbs.streamsz = 0;
     
+    // we loop through and check.
+    // this means that the meta function doesn't have to be
+    // at the top, and it also means you can initiate
+    // an empty class if you wanted, for some reason
+    // beknown to me
+    char *class_name;
+    for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
+        {
+            NodeMaster curr_node = stack->UNION.Nodes.nodes[i];
+            enum _TYPE_ ntype = (curr_node.utype == NODES) ? curr_node.UNION.Nodes.type : curr_node.UNION.Node.type;
+            switch (ntype)
+                {
+                     case IDENTIFIER
+                         // this is simply where the programmer has typed
+                         // the name of the class. 
+                         // this is where we create a hashmap of all of
+                         // its data, so we call _CLASS_INIT to do so
+                         
+                         class_name = strdup(curr_node.UNION.Node.stor);
+                         Instruction init = CMDcreate_isn(_CLASS_INIT, class_name, __NOFLAG__);
+                         ai_stream(&classbs, init);
+                         break;
+                          
+                     case INHERITS:
+                         // we basically call the other class and store
+                         // it in this class' hashmap
+                         int namecls_index = search_class(bsi, class_name);
+                         printf("function name is: %s %d\n", func_name, namefn_index);
+                         // - 1 means we weren't able to find the function in the array
+                         if (namefn_index < 0)
+                             {
+                                 perror("Function doesn't exist");
+                                 exit(EXIT_FAILURE);
+                             }
+                        //                               'its' just converts an int to string
+                         char *string = malloc(sizeof(char)*(int)log10(namefn_index + 1));
+                         sprintf(string, "%d", namefn_index);
+                         Instruction call = CMDcreate_isn(_CALL, string, __FNCALL__);
+                         ai_stream(bs, call);
+                         break;
+                     case METADATA:
+                         break;
+                     case SCOPE:
+                         break;
+                     
+                     default:
+                         perror("TYPE in class does not exist");
+                         exit(EXIT_FAILURE);           
+                }
+        }
 }
 
 ByteStream compile(NodeMaster *stack)
