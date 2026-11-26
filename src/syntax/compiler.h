@@ -12,6 +12,9 @@ Instruction CONcreate_isn(enum _DATATYPE_ datatype, void *data, enum _FLAG_ _fla
 void ai_stream(ByteStream *bs, Instruction ins);;
 void agem(enum _TYPE_ atype, Genmem *gem);
 void agenm(NodeMaster node, NodeMaster *genm);
+
+int search_func(ByteStreamIndex *bsi, char *func_name);
+
 void createLITERAL(NodeMaster *value_n, ByteStream *bs);
 
 void bytecode_listacc(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *accesses);

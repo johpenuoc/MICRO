@@ -105,6 +105,22 @@ void agenm(NodeMaster node, NodeMaster *genm)
     genm->UNION.Nodes.nodes[genm->UNION.Nodes.nodeln] = node;
     genm->UNION.Nodes.nodeln++;
 }
+
+int search_func(ByteStreamIndex *bsi, char *func_name)
+{
+    for (int i = 0; i < bsi->len; ++i)
+        {
+            ByteStream bs = bsi->bytestream[i];
+            
+            if (strcmp(bsi->table[i], func_name) == 0)
+                {
+                    debugp("found function in memory");
+                    return i;
+                }
+        }
+    
+    return -1;
+}
 /*
 STACK: [PROGRAM]
     STACK: [ID_LINKER]
@@ -302,11 +318,25 @@ void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *
     
     // at index 1 (true index is list[0]), will always be the function name 
     char *func_name = node_s->UNION.Nodes.nodes[0].UNION.Node.stor;
-    Instruction load = CMDcreate_isn(_LOAD, func_name, __NOFLAG__);
+    /*Instruction load = CMDcreate_isn(_LOAD, func_name, __NOFLAG__);
     ai_stream(bs, load);
     Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
-    ai_stream(bs, push);
-    Instruction call = CMDcreate_isn(_CALL, "", __NOFLAG__);
+    ai_stream(bs, push);*/
+    
+    // we fetch the address of the function in the bsi so it
+    // can be quickly called later on
+    int namefn_index = search_func(bsi, func_name);
+    printf("function name is: %s %d\n", func_name, namefn_index);
+    // - 1 means we weren't able to find the function in the array
+    if (namefn_index < 0)
+        {
+            perror("Function doesn't exist");
+            exit(EXIT_FAILURE);
+        }
+    //                               'its' just converts an int to string
+    char *string = malloc(sizeof(char)*(int)log10(namefn_index + 1));
+    sprintf(string, "%d", namefn_index);
+    Instruction call = CMDcreate_isn(_CALL, string, __FNCALL__);
     ai_stream(bs, call);
 }
 
@@ -1064,8 +1094,7 @@ void bytecode_return(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster
 {
     // the first two are always an EXPRESSION, so we
     // will skip past them
-    NodeMaster retval = stack->UNION.Nodes.nodes[0].UNION.Nodes.nodes[0];
-    
+    NodeMaster retval = stack->UNION.Nodes.nodes[0];//.UNION.Nodes.nodes[0];
     // args has a lot of general uses in the context
     // of looping through either one or a few things
     bytecode_args(&retval, bs, gem, genm, bsi);
@@ -1080,6 +1109,7 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
     for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
             NodeMaster node_s = stack->UNION.Nodes.nodes[i];
+            printf("utype: %s\n", utypes[node_s.utype]);
             // this function ONLY loops through NODES, not NODE's
             enum _TYPE_ stack_type = node_s.UNION.Nodes.type;
             
@@ -1121,7 +1151,9 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
                         bytecode_fndef(&node_s, bs,  gem, genm, bsi);
                         break;
                     case RETURN:
+                        debugp("hedsfre?");
                         bytecode_return(&node_s, bs,  gem, genm, bsi);
+                        debugp("hsdfere?2");
                         break;
                     //case EXPRESSION:
                      //   traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm, bsi);
@@ -1360,9 +1392,12 @@ void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster 
     
     // first we make room in the 'bsi' so that we can append
     // another function's bytecode to it.
+    debugp("here1");
     NodeMaster fndef = stack->UNION.Nodes.nodes[0];
+    char *namefn = fndef.UNION.Nodes.nodes[0].UNION.Node.stor;
+    NodeMaster args = fndef.UNION.Nodes.nodes[1];
     NodeMaster scope = stack->UNION.Nodes.nodes[1];
-    
+    debugp("here2");
     // we want to copy whats into the stack into the
     // arguments, as they have been renamed
     ByteStream fnbs; 
@@ -1374,14 +1409,28 @@ void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster 
     bytecode_fndef_args(&fndef, &fnbs, gem, genm, bsi);
     
     // load in the scope
+    //printf("idk mannn %s\n", type_names[scope.UNION.Nodes.type]);
+    debugp("going into traverse");
     traverse(&scope, &fnbs, gem, genm, bsi);
+    debugp("here3");
     
     // allocate room in the bsi for the fn-bytestream
-    fnbs.bsi_index = bsi->len; // <-- idk whether this ought to be done before or after traverse
     bsi->size += sizeof(fnbs);
     bsi->bytestream = realloc(bsi->bytestream, bsi->size);
+    // setting the name inside of the table
+    bsi->table = realloc(bsi->table, bsi->size);
+    bsi->table[bsi->len] = NULL;
+    bsi->table[bsi->len] = realloc(bsi->table[bsi->len], sizeof(namefn));
+    bsi->table[bsi->len] = namefn;
+    // actually appending the fnbs into the bytestream array
     bsi->bytestream[bsi->len] = fnbs;
+    
     bsi->len++;  
+}
+
+void bytecode_class(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
+{
+    
 }
 
 ByteStream compile(NodeMaster *stack)
@@ -1397,19 +1446,20 @@ ByteStream compile(NodeMaster *stack)
     genm.UNION.Nodes.nodeln = 0;
     
     // functions and classes share the same dedicated bytestream
-    ByteStreamIndex *bsi;
-    bsi->bytestream = NULL;
-    bsi->len = 0;
-    bsi->size = 0;
-    
+    ByteStreamIndex bsi;
+    bsi.bytestream = NULL;
+    bsi.len = 0;
+    bsi.size = 0;
+    bsi.table = NULL;
     
     ByteStream bs;
     bs.stream = NULL;
     bs.streamln = 0;
     bs.streamsz = 0;
-    traverse(stack, &bs, &gem, &genm, bsi);
     
-    printf("\n\n");
+    traverse(stack, &bs, &gem, &genm, &bsi);
+    
+    printf("\n\n======== COMPLETED BYTECODE TRANSLATION ========\n\n");
     
     for (int i = 0; i < bs.streamln; ++i)
         {

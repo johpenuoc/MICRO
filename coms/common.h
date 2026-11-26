@@ -26,10 +26,13 @@ enum _FLAG_
     __NOFLAG__,
     
     __CONSUME__,
-    
+     
     __ADDEQ__, __SUBEQ__, __MULEQ__, __DIVEQ__,
     
-    __IFELSE__
+    __IFELSE__,
+    
+    __FNCALL__, __CLCALL__, __CLFNCALL__
+    
 };
 
 enum _COMMAND_
@@ -185,10 +188,12 @@ typedef struct
 typedef struct
 {
     ByteStream *bytestream;
+    char **table;
+    
     int len;
     size_t size;
      
-} ByteStreamIndex;
+} ByteStreamIndex;;
 
 typedef struct
 {
@@ -222,5 +227,8 @@ int cast_to_int(char *string, int stop_id);
 int special_cast_to_int(char *string, int stop_id);
 float cast_to_float(char *string);
 Casted convert(char *string, enum _DATATYPE_ type);
+
+// int to string
+char *its(int num);
 
 #endif

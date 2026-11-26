@@ -18,11 +18,16 @@ const char *utypes[] = {
 
 enum _FLAG_
 {
+    __NOFLAG__,
+    
     __CONSUME__,
      
     __ADDEQ__, __SUBEQ__, __MULEQ__, __DIVEQ__,
     
-    __IFELSE__
+    __IFELSE__,
+    
+    __FNCALL__, __CLCALL__, __CLFNCALL__
+    
 };
 const char *flags[] = 
 {
@@ -32,7 +37,9 @@ const char *flags[] =
     
     "__ADDEQ__", "__SUBEQ__", "__MULEQ__", "__DIVEQ__",
     
-    "__IFELSE__"
+    "__IFELSE__",
+    
+    "__FNCALL__", "__CLCALL__", "__CLFNCALL__"
 };
 
 
@@ -274,14 +281,13 @@ typedef struct
     int streamln;
     size_t streamsz;
     
-    // this is for classes and functions being saved
-    int bsi_index;
-    
 } ByteStream;
 
 typedef struct
 {
     ByteStream *bytestream;
+    char **table;
+    
     int len;
     size_t size;
      
@@ -548,4 +554,13 @@ Casted convert(char *string, enum _DATATYPE_ type)
                 cast.data.string = string;
                 return cast;
         }
+}
+
+// int to string
+char *its(int num)
+{
+    char *string = malloc(sizeof(char)*(int)log10(num));
+    sprintf(string, "%d", num);
+    
+    return string;
 }

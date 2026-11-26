@@ -1154,3 +1154,22 @@ Continuing development.
 
 ### 9:52
 I'm thinking that a function's bytecode not only be in a different stream, but that also its information, like argument functions, be 
+
+### 12:12
+I suppose I forgot I was writing in the TODOD xD. Anyways, The code was going well, until I realised that I may need to implement a hashmap. That's fine as it isn't incredibly complex or anything, but it was rather how it took me off guard. I was expecting to do that later, so I've been thinking of how to harmonize all of the functions together now. 
+
+I'm going to eat lunch. I'll have a think during that time. But I think I need to develop a hashmap first.
+
+### 13:24
+I've been thinking and I've realised that a hashmap is just overengineering. Rather than a hashmap, I can create a function name list. This will contain a function name and the bytecode for its scope. When a function is called, we run CALL, as usual, but we add an address to the end of it and a flag stating whether it's a function or class. We then use that number and flag to go to the correct bytestream list and retrieve the bytestream to execute!
+
+Going to implement this now.
+
+### 14:37
+Okidokie, I think I've completed function defintions and calls now. 
+
+Basically, when a function is defined, it saved the scoep and name with an index in a seperate bytestream. Then, when a function is called, it takes the names, searches through that list, pulls the index, and returns the bytecode 'CALL :index: FNCALL'. It will then load whatever index that is from the list, pull the scope, execute, and then return to the main bytestream.
+
+Next will be classes. They will be done in generally the same way. Except the main difference being that the classes, when called, execute the initialization (@ init {}). The initialization contains not only the objects, but there must also be a bytestream stored in there specifically for clas function calls. This will also mean I need to reconsider linkers, maybe? Or maybe not. I do forget that a lot of things are handled behind the scences here that will also be using context to figure things out.
+
+That will be next up for development. However, I'm going to take a small break.
