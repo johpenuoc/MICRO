@@ -1,30 +1,17 @@
-=== _OPERATORS ===
-_ADD, for example, takes the last two items stored in the STACK and adds them.
-
-
-=== _PUSH ===
-This moves the last calculated item onto the STACK.
-
-
-=== _CALL ===
-This 'calls' a function. May return an answer that'll be pushed onto the STACK within the fuction.
-
-
-=== _STO ===
-This takes two arguments: VALUE : LOCATION. For example:
+=============================================
+_ADD, _SUB, _MUL, _DIV,
     
-    STO STACK(-1), HASH(KEYL[-1])
+_PUSH, _CALL, 
 
-    This will store the value from the end of STACK into the hashtable with the key at the last index stored in KEYL 'keylist'.
-    
-    
-=== _LOAD ===
-_LOAD retrievs from the hashtable a certain value. It takes one argument: the key for the hashtable.
+_STO, _STO_SEQ, _PROVIDE, _STO_SEQUEL (Store everything contained in a scope (the scop is infront)),
 
+_LOAD, _LOAD_SEQ (Loads things in a sequence, going backwards),
 
-=== _SET ===
-This allocates space on the hashtable and updates the KEYL (keylist) with the key.
+_SCOPE_START, _SCOPE_END,
 
+_INVERSE (Inverts the data in the stack[top]), _GT, _LT, _GTET, _LTET, _EQUIV,
 
-=== _PUSH_KEYL ===
-This will push a key (which will just be a STRING) into the keylist.
+_JUMP_IF_TRUE (Only jumps backwards), _JUMP_IF_FALSE (Only jumps forwards), _JUMP (Unconditional),
+
+_CLASS_INIT (This initializes a class by creating its hashmap),
+=============================================

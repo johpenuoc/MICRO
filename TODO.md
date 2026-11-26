@@ -1189,3 +1189,6 @@ Initialize that class and store it inside the hashmap that the current class is 
 Is that how they're normally done? Or is this something incredibly stupid.
 
 This is the way.
+
+### 17:18
+The bulk of the code is complete. It doesn't work... at all, but I've got something down on paper, at least.
