@@ -27,9 +27,12 @@ void bytecode_not(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *g
 void bytecode_subcondition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);//, Instruction *jumpcmd);
 void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_return(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
 void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
+void bytecode_fndef_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 
 ByteStream compile(NodeMaster *stack);
 

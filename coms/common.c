@@ -50,7 +50,7 @@ enum _COMMAND_
     
     _INVERSE, _GT, _LT, _GTET, _LTET, _EQUIV,
     
-    _JUMP_IF_TRUE, _JUMP_IF_FALSE, _JUMP
+    _JUMP_IF_TRUE, _JUMP_IF_FALSE, _JUMP,
 };
 const char *cmdt_types[] = 
 {
@@ -122,6 +122,12 @@ const char *type_names[] = {
     "META_SCOPE"
 
 };
+
+// this is for bytestream defining functions and classes
+// =====================================================
+
+// =====================================================
+// =====================================================
 
 
 enum _DATATYPE_
@@ -267,6 +273,9 @@ typedef struct
     Instruction *stream;
     int streamln;
     size_t streamsz;
+    
+    // this is for classes and functions being saved
+    int bsi_index;
     
 } ByteStream;
 

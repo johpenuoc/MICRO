@@ -1145,3 +1145,12 @@ I've implemented them. Next will be defining functions, I suppose?
 I'm thinking that we use different ByteStreams for functions and classes. We can then index them and, when called, we simply go to that index. It also means we don't have to worry about jumping to different lines; it simply pauses at the current bytecode address, goes to the respective bytestream function index, and executes that. Once completed, it resumes! Same for classes, too.
 
 Beginning development.
+
+## 26/11/26
+### 9:43
+I'm now going to fully implement defining functions and defining classes in bytecode translation/conversion.
+
+Continuing development.
+
+### 9:52
+I'm thinking that a function's bytecode not only be in a different stream, but that also its information, like argument functions, be 

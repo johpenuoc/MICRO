@@ -18,14 +18,16 @@ void mbs_reset(ByteStream *bs);
 
 void astream(ByteStream *bs, Instruction isn);
 
-void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, int *pre_ifelse_statement);
-void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm);
-void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, int *linker_cnt);
-void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
-void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm);
+void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
+void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
+void bytecode_identifier(NodeMaster *node, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void bytecode_IDlinker(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *linker_cnt);
+void bytecode_condition(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
+void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 
 Instruction CMDcreate_isn(enum _COMMAND_ cmdtype, char *_val, enum _FLAG_ _flag)
 {
@@ -652,7 +654,7 @@ void bytecode_assignment(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMa
                                     case ID_LINKER:
                                         // remember, that stupid, redundant ID_LINKER
                                         // parent stack, so we use index 0 to bypass it
-                                        bytecode_IDlinker_func(&subnode.UNION.Nodes.nodes[0], bs, gem, genm);
+                                        bytecode_IDlinker_func(&subnode.UNION.Nodes.nodes[0], bs, gem, genm, bsi);
                                         break;
                                     case LIST_ACC:
                                         int accesses = 0;
@@ -1050,6 +1052,25 @@ void bytecode_loop(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *
     // JMP_IF_TRUE (jump backwards if the condition is still true after looping)
 }
 
+/*
+STACK: [RETURN]
+        NODE: [RETURN]------->[ret]
+        STACK: [EXPRESSION]
+                STACK: [EXPRESSION]
+                        NODE: [IDENTIFIER]--->[arg]
+*/
+
+void bytecode_return(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
+{
+    // the first two are always an EXPRESSION, so we
+    // will skip past them
+    NodeMaster retval = stack->UNION.Nodes.nodes[0].UNION.Nodes.nodes[0];
+    
+    // args has a lot of general uses in the context
+    // of looping through either one or a few things
+    bytecode_args(&retval, bs, gem, genm, bsi);
+}
+
 void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
 {
     Instruction scope_start = CMDcreate_isn(_SCOPE_START, "", __NOFLAG__);
@@ -1097,7 +1118,10 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
                         bytecode_if(&node_s.UNION.Nodes.nodes[0], bs,  gem, genm, bsi, &placeholder2);
                         break;
                     case DEF_FN:
-                        
+                        bytecode_fndef(&node_s, bs,  gem, genm, bsi);
+                        break;
+                    case RETURN:
+                        bytecode_return(&node_s, bs,  gem, genm, bsi);
                         break;
                     //case EXPRESSION:
                      //   traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm, bsi);
@@ -1127,7 +1151,7 @@ STACK: [IF]
                         NODE: [NUMBER]------->[1]
                         
 */
-void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi int *pre_ifelse_statement)
+void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement)
 {
     int buf = bs->streamln;
     
@@ -1227,6 +1251,139 @@ STACK: [DEF_FN]
                                         
 */
 
+void bytecode_fndef_args(NodeMaster *node_s, ByteStream *bs, Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
+{   
+    // there are no arguments, so we simply return
+    if (node_s->UNION.Nodes.nodeln < 1) return;
+    
+    // we reverse the order because we're copying in loaded
+    // variables/literals from the stack into the newly named
+    // argument names, thus this must go in reverse order
+    for (int i = node_s->UNION.Nodes.nodeln - 1; i >= 0; --i)
+        {
+            NodeMaster subnode;
+            // every single arguments has EXPRESSION as a parent node
+            // so we ignore it and skip past it
+            if (node_s->UNION.Nodes.nodes[i].UNION.Nodes.type == EXPRESSION)
+                {
+                    subnode = node_s->UNION.Nodes.nodes[i].UNION.Nodes.nodes[0];
+                }
+            else
+                {
+                    subnode = node_s->UNION.Nodes.nodes[i];
+                }
+            
+            if (subnode.utype == NODES)
+                {
+                    switch (subnode.UNION.Nodes.type)
+                        {
+                            case OPERATION:
+                                //bytecode_expr();
+                                break;
+                            case FUNCTION_CALL:
+                                bytecode_func(&subnode, bs, gem, genm, bsi);
+                                break;
+                            case ID_LINKER:
+                                // remember, we go straight to index '0' because an ID_LINKER
+                                // always has a stupid, redudant ID_LINKER parent stack that 
+                                // does nothing but make life a little bit more complicated than it 
+                                // has to be 
+                                int linker_cnt = 0;
+                                bytecode_IDlinker(&subnode.UNION.Nodes.nodes[0], bs, gem, genm, bsi, &linker_cnt);
+                                
+                                char *seq = malloc(sizeof(char)*(int)log10(linker_cnt));
+                                sprintf(seq, "%d", linker_cnt);
+                                
+                                Instruction loadseq = CMDcreate_isn(_LOAD_SEQ, seq, __NOFLAG__);
+                                ai_stream(bs, loadseq);
+                                
+                                Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
+                                ai_stream(bs, push);
+                                
+                                Instruction call = CMDcreate_isn(_CALL, "", __NOFLAG__);
+                                ai_stream(bs, call);
+                                break;
+                            case LIST_ACC:
+                                int counter = 0;
+                                bytecode_listacc(&subnode, bs, gem, genm, bsi, &counter);
+
+                                char *__seq = malloc(sizeof(char)*(int)log10(counter));
+                                sprintf(__seq, "%d", counter);
+                                Instruction __loadseq = CMDcreate_isn(_LOAD_SEQ, __seq, __NOFLAG__);
+                                ai_stream(bs, __loadseq);
+
+                                Instruction __push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
+                                ai_stream(bs, __push);
+                                
+                                break;
+                            case LIST:
+                                bytecode_args(&subnode, bs, gem, genm, bsi);
+                                
+                                char *_seq = malloc(sizeof(char)*(int)log10(subnode.UNION.Nodes.nodeln));
+                                sprintf(_seq, "%d", subnode.UNION.Nodes.nodeln);
+                                Instruction _loadseq = CMDcreate_isn(_LOAD_SEQ, _seq, __NOFLAG__);
+                                ai_stream(bs, _loadseq);
+                                
+                                Instruction _push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
+                                ai_stream(bs, _push);
+                                
+                                break;
+                        }
+                }
+            else
+                {
+                    switch (subnode.UNION.Node.type)
+                        {
+                            case IDENTIFIER:
+                                bytecode_identifier(&subnode, bs, gem, genm, bsi);
+                                break;
+                            case NUMBER:
+                            case STRING:
+                                bytecode_literal(&subnode, bs, gem, genm, bsi);
+                                break;
+                            default:
+                                debugp("HERE??");
+                                break;
+                        }
+                }
+        }
+}
+
+void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
+{
+    // =================================================
+    // REMEMBER: This function is not 'defining'; it is
+    // the actual code to run the function when it's 
+    // called. we're just saving it to a dedicated
+    // bytestream!
+    // =================================================
+    
+    // first we make room in the 'bsi' so that we can append
+    // another function's bytecode to it.
+    NodeMaster fndef = stack->UNION.Nodes.nodes[0];
+    NodeMaster scope = stack->UNION.Nodes.nodes[1];
+    
+    // we want to copy whats into the stack into the
+    // arguments, as they have been renamed
+    ByteStream fnbs; 
+    fnbs.stream = NULL;
+    fnbs.streamln = 0;
+    fnbs.streamsz = 0;
+    
+    // load in the arguments (or rather copy from the stack)
+    bytecode_fndef_args(&fndef, &fnbs, gem, genm, bsi);
+    
+    // load in the scope
+    traverse(&scope, &fnbs, gem, genm, bsi);
+    
+    // allocate room in the bsi for the fn-bytestream
+    fnbs.bsi_index = bsi->len; // <-- idk whether this ought to be done before or after traverse
+    bsi->size += sizeof(fnbs);
+    bsi->bytestream = realloc(bsi->bytestream, bsi->size);
+    bsi->bytestream[bsi->len] = fnbs;
+    bsi->len++;  
+}
+
 ByteStream compile(NodeMaster *stack)
 {
     Genmem gem;
@@ -1239,17 +1396,18 @@ ByteStream compile(NodeMaster *stack)
     genm.UNION.Nodes.nodes = NULL;
     genm.UNION.Nodes.nodeln = 0;
     
-    // space 0 is for funcs
-    // space 1 is for classes
+    // functions and classes share the same dedicated bytestream
     ByteStreamIndex *bsi;
+    bsi->bytestream = NULL;
+    bsi->len = 0;
+    bsi->size = 0;
     
     
     ByteStream bs;
-    //create_ibs(&bs);
     bs.stream = NULL;
     bs.streamln = 0;
     bs.streamsz = 0;
-    traverse(stack, &bs, &gem, &genm);
+    traverse(stack, &bs, &gem, &genm, bsi);
     
     printf("\n\n");
     

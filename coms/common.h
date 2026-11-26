@@ -178,6 +178,8 @@ typedef struct
     int streamln;
     size_t streamsz;
     
+    int bsi_index;
+    
 } ByteStream;
 
 typedef struct
