@@ -26,7 +26,7 @@ enum _FLAG_
     
     __IFELSE__,
     
-    __FNCALL__, __CLCALL__, __CLFNCALL__
+    __FNCALL__, __CLCALL__, __CLFNCALL__, __INHERITS__
     
 };
 const char *flags[] = 
@@ -39,7 +39,7 @@ const char *flags[] =
     
     "__IFELSE__",
     
-    "__FNCALL__", "__CLCALL__", "__CLFNCALL__"
+    "__FNCALL__", "__CLCALL__", "__CLFNCALL__", "__INHERITS__"
 };
 
 
@@ -49,7 +49,7 @@ enum _COMMAND_
     
     _PUSH, _CALL, 
     
-    _STO, _STO_SEQ, _PROVIDE,
+    _STO, _STO_SEQ, _PROVIDE, _STO_SEQUEL,
     
     _LOAD, _LOAD_SEQ,
     
@@ -59,7 +59,7 @@ enum _COMMAND_
     
     _JUMP_IF_TRUE, _JUMP_IF_FALSE, _JUMP,
     
-    _CLASS_INIT
+    _CLASS_INIT,
 };
 const char *cmdt_types[] = 
 {
@@ -77,7 +77,7 @@ const char *cmdt_types[] =
     
     "JUMP_IF_TRUE", "JUMP_IF_FALSE", "JUMP",
     
-    "CLASS_INIT"
+    "CLASS_INIT", "HASH_OBJS"
 };
 
 

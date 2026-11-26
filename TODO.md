@@ -1179,3 +1179,13 @@ I'm back! Time to begin developing again.
 
 ### 15:39
 Gotten a decent start on classes, I think.
+
+### 16:34
+I'm back. I'm going to continue development.
+
+When a class inherits another class, it will:
+Initialize that class and store it inside the hashmap that the current class is creating in its instantiation.
+
+Is that how they're normally done? Or is this something incredibly stupid.
+
+This is the way.

@@ -1152,6 +1152,9 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
                     case RETURN:
                         bytecode_return(&node_s, bs,  gem, genm, bsi);
                         break;
+                    case SCOPE:
+                        traverse(&node_s, bs,  gem, genm, bsi);
+                        break;
                     //case EXPRESSION:
                      //   traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm, bsi);
                     default:
@@ -1476,7 +1479,7 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
             enum _TYPE_ ntype = (curr_node.utype == NODES) ? curr_node.UNION.Nodes.type : curr_node.UNION.Node.type;
             switch (ntype)
                 {
-                     case IDENTIFIER
+                     case IDENTIFIER:
                          // this is simply where the programmer has typed
                          // the name of the class. 
                          // this is where we create a hashmap of all of
@@ -1490,23 +1493,42 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                      case INHERITS:
                          // we basically call the other class and store
                          // it in this class' hashmap
-                         int namecls_index = search_class(bsi, class_name);
-                         printf("function name is: %s %d\n", func_name, namefn_index);
+                         char *inherit_classes_name = strdup(curr_node.UNION.Node.stor);
+                         
+                         // btw, i know it says func... leave me alone, i'm stupid, i get it
+                         int namecls_index = search_func(bsi, inherit_classes_name);
+                         printf("inherited class name is: %s %d\n", inherit_classes_name, namecls_index);
                          // - 1 means we weren't able to find the function in the array
-                         if (namefn_index < 0)
+                         if (namecls_index < 0)
                              {
-                                 perror("Function doesn't exist");
+                                 perror("Inherited Class doesn't exist");
                                  exit(EXIT_FAILURE);
                              }
                         //                               'its' just converts an int to string
-                         char *string = malloc(sizeof(char)*(int)log10(namefn_index + 1));
-                         sprintf(string, "%d", namefn_index);
-                         Instruction call = CMDcreate_isn(_CALL, string, __FNCALL__);
+                         char *string = malloc(sizeof(char)*(int)log10(namecls_index + 1));
+                         sprintf(string, "%d", namecls_index);
+                         Instruction call = CMDcreate_isn(_CALL, string, __INHERITS__);
                          ai_stream(bs, call);
                          break;
                      case METADATA:
+                         enum _TYPE_ metatype = curr_node.UNION.Nodes.nodes[0].UNION.Node.type;
+                         NodeMaster meta_scope = curr_node.UNION.Nodes.nodes[1];
+                         switch (metatype)
+                             {
+                                 case INIT:
+                                     // _STO_SEQUEL stores any proceeding scope into something
+                                     Instruction create_objs = CMDcreate_isn(_STO_SEQUEL, class_name, __GIVETOCLASS__);
+                                     traverse(&meta_scope, classbs, gem, genm, bsi);
+                                     break;
+                                     
+                                 default:
+                                     perror("No such metatype exists");
+                                     exit(EXIT_FAILURE);
+                             }
                          break;
                      case SCOPE:
+                         Instruction create_objs = CMDcreate_isn(_STO_SEQUEL, class_name, __GIVETOCLASS__);
+                         traverse(&curr_node, classbs, gem, genm, bsi);
                          break;
                      
                      default:

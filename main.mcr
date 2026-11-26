@@ -1,4 +1,4 @@
-cls Something
+cls Something :: InheritedClass
 {
     @ _init
     {

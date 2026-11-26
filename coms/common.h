@@ -31,7 +31,9 @@ enum _FLAG_
     
     __IFELSE__,
     
-    __FNCALL__, __CLCALL__, __CLFNCALL__
+    __FNCALL__, __CLCALL__, __CLFNCALL__, __INHERITS__,
+    
+    __GIVETOCLASS__
     
 };
 
@@ -41,7 +43,7 @@ enum _COMMAND_
     
     _PUSH, _CALL, 
     
-    _STO, _STO_SEQ, _PROVIDE,
+    _STO, _STO_SEQ, _PROVIDE, _STO_SEQUEL,
     
     _LOAD, _LOAD_SEQ,
     
