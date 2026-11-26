@@ -1173,3 +1173,6 @@ Basically, when a function is defined, it saved the scoep and name with an index
 Next will be classes. They will be done in generally the same way. Except the main difference being that the classes, when called, execute the initialization (@ init {}). The initialization contains not only the objects, but there must also be a bytestream stored in there specifically for clas function calls. This will also mean I need to reconsider linkers, maybe? Or maybe not. I do forget that a lot of things are handled behind the scences here that will also be using context to figure things out.
 
 That will be next up for development. However, I'm going to take a small break.
+
+### 15:01
+I'm back! Time to begin developing again.

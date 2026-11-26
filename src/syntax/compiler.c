@@ -1109,7 +1109,6 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
     for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
             NodeMaster node_s = stack->UNION.Nodes.nodes[i];
-            printf("utype: %s\n", utypes[node_s.utype]);
             // this function ONLY loops through NODES, not NODE's
             enum _TYPE_ stack_type = node_s.UNION.Nodes.type;
             
@@ -1151,9 +1150,7 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
                         bytecode_fndef(&node_s, bs,  gem, genm, bsi);
                         break;
                     case RETURN:
-                        debugp("hedsfre?");
                         bytecode_return(&node_s, bs,  gem, genm, bsi);
-                        debugp("hsdfere?2");
                         break;
                     //case EXPRESSION:
                      //   traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm, bsi);
@@ -1428,8 +1425,19 @@ void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster 
     bsi->len++;  
 }
 
-void bytecode_class(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
+void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi)
 {
+    char *class_name = stack->UNION.Nodes.nodes[0];
+    NodeMaster metadata_nodes;
+    char *inherit_from;
+    if (stack->UNION.Nodes.nodes[1].UNION.Nodes.type == INHERITS)
+        {
+            inherit_from = strdup(stack->UNION.Nodes.nodes[1].UNION.Node.stor, inherit_from);
+        }
+    else
+        {
+            metadata_or_inherit_nodes = stack->UNION.Nodes.nodes[1];
+        }
     
 }
 

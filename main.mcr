@@ -1,13 +1,16 @@
-fn myfunc(arg)
+cls Something
 {
-    arg += 1;
+    @ _init
+    {
+        this.obj1 = "hello";
+        this.obj2 = 10;
+    };
     
-    ret (arg);
+    fn change_obj1(change_to)
+        {
+            this.obj1 = change_to;
+        };
 };
 
-fn add(arg1, arg2)
-{
-    ret (arg1 + arg2);
-};
-
-myfunc(11);
+a = Something;
+a.obj1 = "hi";
