@@ -26,7 +26,9 @@ enum _FLAG_
     
     __IFELSE__,
     
-    __FNCALL__, __CLCALL__, __CLFNCALL__, __INHERITS__
+    __FNCALL__, __CLCALL__, __CLFNCALL__, __INHERITS__,
+    
+    __GIVETOCLASS__
     
 };
 const char *flags[] = 
@@ -67,7 +69,7 @@ const char *cmdt_types[] =
     
     "PUSH", "CALL", 
     
-    "STO", "STO_SEQ", "PROVIDE",
+    "STO", "STO_SEQ", "PROVIDE", "STO_SEQUEL",
     
     "LOAD", "LOAD_SEQ",
     

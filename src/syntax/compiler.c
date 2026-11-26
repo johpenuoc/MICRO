@@ -18,6 +18,7 @@ void mbs_reset(ByteStream *bs);
 
 void astream(ByteStream *bs, Instruction isn);
 
+void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void bytecode_else(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
 void bytecode_fndef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi);
 void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm, ByteStreamIndex *bsi, int *pre_ifelse_statement);
@@ -1152,8 +1153,8 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
                     case RETURN:
                         bytecode_return(&node_s, bs,  gem, genm, bsi);
                         break;
-                    case SCOPE:
-                        traverse(&node_s, bs,  gem, genm, bsi);
+                    case DEF_CLS:
+                        bytecode_classdef(&node_s, bs,  gem, genm, bsi);
                         break;
                     //case EXPRESSION:
                      //   traverse(node_s.UNION.Nodes.nodes, bs,  gem, genm, bsi);
@@ -1508,7 +1509,7 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                          char *string = malloc(sizeof(char)*(int)log10(namecls_index + 1));
                          sprintf(string, "%d", namecls_index);
                          Instruction call = CMDcreate_isn(_CALL, string, __INHERITS__);
-                         ai_stream(bs, call);
+                         ai_stream(&classbs, call);
                          break;
                      case METADATA:
                          enum _TYPE_ metatype = curr_node.UNION.Nodes.nodes[0].UNION.Node.type;
@@ -1518,7 +1519,7 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                                  case INIT:
                                      // _STO_SEQUEL stores any proceeding scope into something
                                      Instruction create_objs = CMDcreate_isn(_STO_SEQUEL, class_name, __GIVETOCLASS__);
-                                     traverse(&meta_scope, classbs, gem, genm, bsi);
+                                     traverse(&meta_scope, &classbs, gem, genm, bsi);
                                      break;
                                      
                                  default:
@@ -1528,7 +1529,7 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                          break;
                      case SCOPE:
                          Instruction create_objs = CMDcreate_isn(_STO_SEQUEL, class_name, __GIVETOCLASS__);
-                         traverse(&curr_node, classbs, gem, genm, bsi);
+                         traverse(&curr_node, &classbs, gem, genm, bsi);
                          break;
                      
                      default:
@@ -1562,6 +1563,7 @@ ByteStream compile(NodeMaster *stack)
     bs.streamln = 0;
     bs.streamsz = 0;
     
+    debugp("starting bytecode translation...");
     traverse(stack, &bs, &gem, &genm, &bsi);
     
     printf("\n\n======== COMPLETED BYTECODE TRANSLATION ========\n\n");
