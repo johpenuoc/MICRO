@@ -12,6 +12,7 @@ PRIVATE
     src/syntax/compiler.c
     vpu/vpu.c
     src/err/rerr.c
+    src/vm/vm.c
 )
 
 target_include_directories(main PRIVATE
@@ -21,4 +22,5 @@ target_include_directories(main PRIVATE
     vpu
     src/syntax
     src/err
+    src/vm
 )
