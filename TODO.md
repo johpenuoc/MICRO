@@ -1192,3 +1192,11 @@ This is the way.
 
 ### 17:18
 The bulk of the code is complete. It doesn't work... at all, but I've got something down on paper, at least.
+
+### 17:22
+Nevermind... it probably doesn't work but the reason why nothing was happening was because the compile function wasn't even being called...
+
+### 17:23
+So I'm obviously testing to see whether it works.. well it did up to the point of inheriting a class. I was testing whether it would covert the inhertence into bytecode... well it recognised that the inherited class doesn't exist and exited the program... at least that's some error handling completed on the side!
+
+I'm going to go grab dinner xD 

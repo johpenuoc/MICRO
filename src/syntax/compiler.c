@@ -1154,6 +1154,7 @@ void traverse(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *genm,
                         bytecode_return(&node_s, bs,  gem, genm, bsi);
                         break;
                     case DEF_CLS:
+                        debugp("hit a class defintion");
                         bytecode_classdef(&node_s, bs,  gem, genm, bsi);
                         break;
                     //case EXPRESSION:
