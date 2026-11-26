@@ -951,8 +951,6 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                     // might only need to be (NEXT_TOKEN_TYPE == EQUAL)
                     else if (NEXT_TOKEN_TYPE == EQUAL || NEXT_TOKEN_TYPE == ADD_EQ || NEXT_TOKEN_TYPE == SUB_EQ || NEXT_TOKEN_TYPE == STAR_EQ || NEXT_TOKEN_TYPE == DIV_EQ)
                         {
-                            printf("please just be here or something: %s\n", type_names[TOKEN_TYPE]);
-                            printf("please just be here or something: %s\n", token.stor);
                             NodeMaster mmstack = parse_assignment(tokens, token_cnt, mem, memsz);
                             
                             // append it to the stack       
@@ -977,6 +975,21 @@ NodeMaster parse_scope(Token *tokens, int *token_cnt, NodeMaster *mem, size_t *m
                             (*token_cnt)--;
                             
                             umem(mem, mmstack, memsz);
+                            
+                            //token_cnt--;
+                            
+                            // the final linker may be a function call.
+                            // we know if its a function call by whether
+                            // there are brackets on the end of it.
+                            // if there are, then we call it.
+                            if (tokens[*token_cnt].type == RPAREN)
+                                {
+                                    NodeMaster mmmstack = mem->UNION.Nodes.nodes[mem->UNION.Nodes.nodeln - 1];
+                                    mstacksz += sizeof(mmmstack);
+                                    mstack.UNION.Nodes.nodes = realloc(mstack.UNION.Nodes.nodes, mstacksz);
+                                    mstack.UNION.Nodes.nodes[mstack.UNION.Nodes.nodeln] = mmmstack;
+                                    mstack.UNION.Nodes.nodeln++;
+                                }
                         }
                     else if (NEXT_TOKEN_TYPE == ADD || NEXT_TOKEN_TYPE == SUB || NEXT_TOKEN_TYPE == STAR || NEXT_TOKEN_TYPE == DIV)
                         {

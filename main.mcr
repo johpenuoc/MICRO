@@ -1,3 +1,16 @@
+cls InheritedClass
+{
+    @ _init
+    {
+        this.pigeon = "PIJOHN";
+    };
+    
+    fn ic_function()
+        {
+            this.pigeon = "PIJOHNS RULE";
+        };
+};
+
 cls Something :: InheritedClass
 {
     @ _init
@@ -6,9 +19,13 @@ cls Something :: InheritedClass
         this.obj2 = 10;
     };
     
-    fn change_obj1(change_to)
+    fn something_func()
         {
-            this.obj1 = change_to;
+            b = 6;
+            
+            this.ic_function();
+            
+            a = 5;
         };
 };
 

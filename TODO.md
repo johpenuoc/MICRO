@@ -1200,3 +1200,128 @@ Nevermind... it probably doesn't work but the reason why nothing was happening w
 So I'm obviously testing to see whether it works.. well it did up to the point of inheriting a class. I was testing whether it would covert the inhertence into bytecode... well it recognised that the inherited class doesn't exist and exited the program... at least that's some error handling completed on the side!
 
 I'm going to go grab dinner xD 
+
+### 19:18
+I'm back from a pretty long break. I don't feel particularly fresh, but I'm ready to code a little bit. Though I am tired, so anything done now will most likely not be up to standard -- though that standard is not high xD.
+
+Continuin development.
+
+### 19:41
+Okidokie!! Some actual good news: it appears to be working! Somewhat, I think. It's at least doing what I've coded... what I've coded may be wrong, but its not crashing! Take a look:
+
+cls InheritedClass
+{
+    @ _init
+    {
+        this.pigeon = "PIJOHN";
+    };
+    
+    fn ic_function()
+        {
+            this.pigeon = "PIJOHNS RULE";
+        };
+};
+
+cls Something :: InheritedClass
+{
+    @ _init
+    {
+        this.obj1 = "hello";
+        this.obj2 = 10;
+    };
+    
+    fn change_obj(change_to)
+        {
+            this.obj1 = change_to;
+        };
+};
+
+This gets translated into the bytecode...
+
+======== COMPLETED BYTECODE TRANSLATION ========
+
+Class/Func name: ic_function
+LOAD ic_function,
+PUSH
+SCOPE_START
+"PIJOHNS RULE" STRING,
+PUSH
+pigeon STRING,
+PUSH
+this STRING,
+PUSH
+LOAD_SEQ 2,
+PUSH
+STO CONSUME,
+SCOPE_END
+
+=============================
+Class/Func name: InheritedClass
+CLASS_INIT InheritedClass,
+STO_SEQUEL InheritedClass,  GIVETOCLASS,
+SCOPE_START
+pigeon STRING,
+PUSH
+this STRING,
+PUSH
+LOAD_SEQ 2,
+PUSH
+SCOPE_END
+STO_SEQUEL InheritedClass,  GIVETOCLASS,
+SCOPE_START
+SCOPE_END
+
+=============================
+Class/Func name: change_obj
+LOAD change_obj,
+PUSH
+SCOPE_START
+change_to STRING,
+PUSH
+obj1 STRING,
+PUSH
+this STRING,
+PUSH
+LOAD_SEQ 2,
+PUSH
+STO CONSUME,
+SCOPE_END
+
+=============================
+Class/Func name: Something
+CLASS_INIT Something,
+CALL 1,  INHERITS,
+STO_SEQUEL Something,  GIVETOCLASS,
+SCOPE_START
+obj1 STRING,
+PUSH
+this STRING,
+PUSH
+LOAD_SEQ 2,
+PUSH
+obj2 STRING,
+PUSH
+this STRING,
+PUSH
+LOAD_SEQ 2,
+PUSH
+SCOPE_END
+STO_SEQUEL Something,  GIVETOCLASS,
+SCOPE_START
+SCOPE_END
+
+=============================
+
+So far, it works! Even referencing the right indexes for functions and whatnot!
+
+### 19:46
+Function calls inside of class functions don't appear to work...
+
+Patching now.
+
+### 20:30
+With the way I've designed it, unfortunately, when you attempt to get the name of a function when it's at the end of a linker, like something.func_call(), it's hard to reach. However, the loaded function is in the stack, so in this scenario, I've added an extra flag so that it becomes CALL CONSUME FNCALL. 
+
+Apart from that, it is all working! Now I just need to incorporate class calls, but that is easy enough!
+
+Continuing development.

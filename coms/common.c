@@ -41,7 +41,9 @@ const char *flags[] =
     
     "__IFELSE__",
     
-    "__FNCALL__", "__CLCALL__", "__CLFNCALL__", "__INHERITS__"
+    "__FNCALL__", "__CLCALL__", "__CLFNCALL__", "__INHERITS__",
+    
+    "__GIVETOCLASS__",
 };
 
 

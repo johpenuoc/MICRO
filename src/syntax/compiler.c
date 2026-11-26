@@ -370,7 +370,10 @@ void bytecode_IDlinker_func(NodeMaster *node_s, ByteStream *bs, Genmem *gem, Nod
                     Instruction push = CMDcreate_isn(_PUSH, "", __NOFLAG__);
                     ai_stream(bs, push);
                     // we then call it because it is a function
-                    Instruction call = CMDcreate_isn(_CALL, "", __NOFLAG__);
+
+                    //                                 flags may take over this position if you
+                    //                                 need more than one of them
+                    Instruction call = CMDcreate_isn(_CALL, "__CONSUME__", __FNCALL__);
                     ai_stream(bs, call);
                     
                     non_regular = true;
@@ -1254,7 +1257,8 @@ void bytecode_if(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMaster *ge
                                 }
                         }
                 }
-        }  
+        }
+    
     // if the if-statement is evaluated as true, then we need
     // to jump to the very end and skip over all of the other
     // if-else statements, which is what this achieves
@@ -1475,27 +1479,25 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
     // an empty class if you wanted, for some reason
     // beknown to me
     char *class_name;
+    
+    // this will always be the name
+    class_name = strdup(stack->UNION.Nodes.nodes[0].UNION.Node.stor);
+    Instruction init = CMDcreate_isn(_CLASS_INIT, class_name, __NOFLAG__);
+    ai_stream(&classbs, init);
+    
     for (int i = 0; i < stack->UNION.Nodes.nodeln; ++i)
         {
             NodeMaster curr_node = stack->UNION.Nodes.nodes[i];
             enum _TYPE_ ntype = (curr_node.utype == NODES) ? curr_node.UNION.Nodes.type : curr_node.UNION.Node.type;
             switch (ntype)
-                {
+                {                       
                      case IDENTIFIER:
-                         // this is simply where the programmer has typed
-                         // the name of the class. 
-                         // this is where we create a hashmap of all of
-                         // its data, so we call _CLASS_INIT to do so
-                         
-                         class_name = strdup(curr_node.UNION.Node.stor);
-                         Instruction init = CMDcreate_isn(_CLASS_INIT, class_name, __NOFLAG__);
-                         ai_stream(&classbs, init);
-                         break;
-                          
+                         break;   
                      case INHERITS:
                          // we basically call the other class and store
                          // it in this class' hashmap
-                         char *inherit_classes_name = strdup(curr_node.UNION.Node.stor);
+                         char *inherit_classes_name = strdup(curr_node.UNION.Nodes.nodes[0].UNION.Node.stor);
+                         printf("inherit_classes_name: %s\n", inherit_classes_name);
                          
                          // btw, i know it says func... leave me alone, i'm stupid, i get it
                          int namecls_index = search_func(bsi, inherit_classes_name);
@@ -1506,7 +1508,7 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                                  perror("Inherited Class doesn't exist");
                                  exit(EXIT_FAILURE);
                              }
-                        //                               'its' just converts an int to string
+                         //                               'its' just converts an int to string
                          char *string = malloc(sizeof(char)*(int)log10(namecls_index + 1));
                          sprintf(string, "%d", namecls_index);
                          Instruction call = CMDcreate_isn(_CALL, string, __INHERITS__);
@@ -1520,6 +1522,7 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                                  case INIT:
                                      // _STO_SEQUEL stores any proceeding scope into something
                                      Instruction create_objs = CMDcreate_isn(_STO_SEQUEL, class_name, __GIVETOCLASS__);
+                                     ai_stream(&classbs, create_objs);
                                      traverse(&meta_scope, &classbs, gem, genm, bsi);
                                      break;
                                      
@@ -1530,6 +1533,7 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                          break;
                      case SCOPE:
                          Instruction create_objs = CMDcreate_isn(_STO_SEQUEL, class_name, __GIVETOCLASS__);
+                         ai_stream(&classbs, create_objs);
                          traverse(&curr_node, &classbs, gem, genm, bsi);
                          break;
                      
@@ -1538,6 +1542,20 @@ void bytecode_classdef(NodeMaster *stack, ByteStream *bs,  Genmem *gem, NodeMast
                          exit(EXIT_FAILURE);           
                 }
         }
+        
+    // allocate room in the bsi for the fn-cls-bytestream
+    bsi->size += sizeof(classbs);
+    bsi->bytestream = realloc(bsi->bytestream, bsi->size);
+    // setting the name inside of the table
+    bsi->table = realloc(bsi->table, bsi->size);
+    bsi->table[bsi->len] = NULL;
+    bsi->table[bsi->len] = realloc(bsi->table[bsi->len], sizeof(class_name));
+    printf("class name being saved: %s\n", class_name);
+    bsi->table[bsi->len] = class_name;
+    // actually appending the fnbs into the bytestream array
+    bsi->bytestream[bsi->len] = classbs;
+    
+    bsi->len++;  
 }
 
 ByteStream compile(NodeMaster *stack)
@@ -1564,7 +1582,7 @@ ByteStream compile(NodeMaster *stack)
     bs.streamln = 0;
     bs.streamsz = 0;
     
-    debugp("starting bytecode translation...");
+    debugp("Starting bytecode translation...");
     traverse(stack, &bs, &gem, &genm, &bsi);
     
     printf("\n\n======== COMPLETED BYTECODE TRANSLATION ========\n\n");
@@ -1603,6 +1621,50 @@ ByteStream compile(NodeMaster *stack)
                      //printf("\n\n");
                  } 
              //printf("\n"); 
+        }
+    printf("\n\n===============================================================\n\n");
+    for (int i = 0; i < bsi.len; ++i)
+        {
+            printf("Class/Func name: %s\n", bsi.table[i]);
+            
+            ByteStream bytestream = bsi.bytestream[i];
+            
+            for (int j = 0; j < bytestream.streamln; ++j)
+                {
+                    Instruction isn = bytestream.stream[j];
+                            
+                     if (isn.isnt == __CMD)
+                         {
+                             enum _COMMAND_ cmd = isn.data.cmd.cmdt;
+                             printf("%s", cmdt_types[cmd]);
+                             //printf(" %s, ", isn.data.cmd.val);
+                             if (isn.data.cmd.val != "") printf(" %s, ", isn.data.cmd.val);
+                             if (isn.data.cmd.flag != __NOFLAG__) printf(" %s, ", flags[isn.data.cmd.flag]);
+                             //else printf("\n");
+                             printf("\n");
+                             //if ((cmd == _PUSH || cmd == _LOAD_SEQ || cmd == _CALL) && isn.data.cmd.val == "") printf("\n");
+                             //printf("\n\n");
+                             //else if (cmd == _SCOPE_START || cmd == _SCOPE_END || cmd == _JMP_IF_TRUE || cmd == _JMP_IF_FALSE || cmd == _STO_SEQ || cmd == _PROVIDE) printf("\n");
+                         }
+                     else if (isn.isnt == __MEM)
+                         {
+                             
+                         }
+                     else 
+                         {
+                             void *p = isn.data.con.val;
+                             if (isn.data.con.datat == _INT_) printf("%d ", (*(int *)p)); 
+                             else if (isn.data.con.datat == _STRING_) printf("%s ", (char *)p);
+                             if (isn.data.con.datat == _FLOAT_) printf("%f ", (*(float *)p));
+                             printf("%s, ", data_types[isn.data.con.datat]);
+                             printf("\n");
+                             
+                             
+                             //printf("\n\n");
+                         } 
+                     //printf("\n"); 
+                }
+            printf("\n=============================\n");
         }
         
     return bs;
