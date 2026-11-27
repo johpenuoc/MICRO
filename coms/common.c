@@ -567,8 +567,8 @@ Casted convert(char *string, enum _DATATYPE_ type)
 // int to string
 char *its(int num)
 {
-    char *string = malloc(sizeof(char)*(int)log10(num));
-    sprintf(string, "%d", num);
+    char *string = malloc(16);
+    snprintf(string, 16, "%d", num);
     
     return string;
 }

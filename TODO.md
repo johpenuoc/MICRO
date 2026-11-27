@@ -1345,3 +1345,16 @@ Nice!
 Probably gonna log off... BUT I THINK THE BYTECODE TRANSLATION IS 98% DONE!!! IF NOT 100% DONE! But I know there are probably tens of bugs and whatnot. But it is converting! Honestly surprised I got this far. I haven't used AI, and I used stackoverflow less than 5 times. Neither have I followed a tutorial! I read an article on tokenization, but that's mostly it. I probably should've educated myself better, but at least it means that this is truly mine, I suppose.
 
 Gonna log off now.
+
+## 27/11/26
+### 9:48
+ATM, for some reason, until loops dont work in functions... 
+
+Patching now.
+
+### 10:44
+I just learned how a printf statement can fix code accidentally, and I also patched a bug in the parser.
+
+I would go straight to writing them VM, but I want to stop using malloc and realloc so much and I want to clean up the code, especially while it's fresh in my head. So, before the VM development (as much as I want to do it), I'm going to be cleaning up my code and improving the memory.
+
+Continuing development.
